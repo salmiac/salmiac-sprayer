@@ -14,7 +14,7 @@ class UDPButtonStateSender {
   /// button states as bits in a single byte.
   Future<void> sendButtonState(bool activated, bool constantPressure) async {
     // Define a unique header for the button state message.
-    List<int> data = [0xAA, 0xAB, 0x70, 0x71, 0x01];
+    List<int> data = [0x80, 0x81, 0x71, 0x71, 0x01];
 
     // Encode button states as bits in a single byte.
     // Bit0: Controller activated state.
@@ -39,7 +39,9 @@ class UDPButtonStateSender {
     // Send the data via UDP.
     RawDatagramSocket socket =
         await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
-    socket.send(data, InternetAddress(targetIp), targetPort);
+    socket.broadcastEnabled = true;
+    final int bytes = socket.send(data, InternetAddress(targetIp), targetPort);
+    print('sent $bytes bytes to $targetIp:$targetPort');
     socket.close();
   }
 }
@@ -52,7 +54,7 @@ class UDPSettingsSender {
 
   Future<void> sendSettings(sprayer_settings.SprayerSettings settings) async {
     // Define a unique header for settings packet: [0x90, 0x91, 0x70, 0x70, 0x06]
-    List<int> data = [0x90, 0x91, 0x70, 0x70, 0x06];
+    List<int> data = [0x80, 0x81, 0x71, 0x70, 0x0A];
 
     // Convert each double value to an integer after scaling by 100.
     // This preserves two decimals.
@@ -63,23 +65,30 @@ class UDPSettingsSender {
     int nominalPressureInt = (settings.nominalPressure * 100).round();
     int nozzleSpacingInt = (settings.nozzleSpacing * 100).round();
 
-    // Append each value as 2 bytes in little-endian.
-    data.addAll(_uInt16ToBytes(nozzleSizeInt));
+    // Append nozzleSize as 1 byte and the others as 2 bytes.
+    data.add(nozzleSizeInt & 0xFF);
+    data.add(nozzleSpacingInt & 0xFF);
     data.addAll(_uInt16ToBytes(litresPerHaInt));
     data.addAll(_uInt16ToBytes(minPressureInt));
     data.addAll(_uInt16ToBytes(maxPressureInt));
     data.addAll(_uInt16ToBytes(nominalPressureInt));
-    data.addAll(_uInt16ToBytes(nozzleSpacingInt));
 
     // Calculate the checksum (CRC) from bytes starting at index 2 up to this point.
     int crc = data.sublist(2).fold(0, (int acc, int val) => (acc + val) & 0xFF);
     data.add(crc);
 
+    if (kDebugMode) {
+      print('Sending settings message: $data');
+    }
+
     // Send the data via UDP.
     RawDatagramSocket socket =
         await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
-    socket.send(data, InternetAddress(targetIp), targetPort);
+    socket.broadcastEnabled = true;
+    final int bytes = socket.send(data, InternetAddress(targetIp), targetPort);
+    print('sent $bytes bytes to $targetIp:$targetPort');
     socket.close();
+    print('Socket closed');
   }
 
   // Helper: convert a 16-bit integer to little-endian bytes.
@@ -119,7 +128,7 @@ class UDPReceiver {
     // 2 bytes current pressure + 1 byte boom locked + 1 byte CRC
     if (data.length != 13) {
       if (kDebugMode) {
-        print('Invalid data length: ${data.length}');
+        print('Invalid data length: ${data.length}, ${data}');
       }
       return;
     }

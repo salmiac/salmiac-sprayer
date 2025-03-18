@@ -302,7 +302,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       widget.onSettingsChanged(_currentSettings); // Pass the updated settings back to the main app
-      UDPSettingsSender sender = UDPSettingsSender(targetIp: '255.255.255.255', targetPort: 1111);
+      UDPSettingsSender sender = UDPSettingsSender(targetIp: '255.255.255.255', targetPort: 8888);
       sender.sendSettings(_currentSettings);
       if (kDebugMode) {
         print('Settings sent via UDP.');

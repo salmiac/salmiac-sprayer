@@ -108,5 +108,33 @@ class SprayerSettings extends ChangeNotifier { // changed: added 'extends Change
 
     return buffer.toBytes();
   }
+
+  // Convert settings to a Map for serialization.
+  Map<String, dynamic> toMap() {
+    return {
+      'nozzleNumber': nozzleSize.number, // store nozzle by number
+      'litresPerHa': litresPerHa,
+      'minPressure': minPressure,
+      'maxPressure': maxPressure,
+      'nominalPressure': nominalPressure,
+      'nozzleSpacing': nozzleSpacing,
+      'minSpeed': minSpeed,
+      'maxSpeed': maxSpeed,
+    };
+  }
+
+  // Create instance from a Map.
+  factory SprayerSettings.fromMap(Map<String, dynamic> map) {
+    return SprayerSettings(
+      nozzleSize: Nozzle.fromNumber(map['nozzleNumber']),
+      litresPerHa: (map['litresPerHa'] as num).toDouble(),
+      minPressure: (map['minPressure'] as num).toDouble(),
+      maxPressure: (map['maxPressure'] as num).toDouble(),
+      nominalPressure: (map['nominalPressure'] as num).toDouble(),
+      nozzleSpacing: (map['nozzleSpacing'] as num).toDouble(),
+      minSpeed: (map['minSpeed'] as num).toDouble(),
+      maxSpeed: (map['maxSpeed'] as num).toDouble(),
+    );
+  }
 }
 
