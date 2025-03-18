@@ -1,6 +1,7 @@
 # salmiac_sprayer
 
-A new Flutter project.
+Controller UI app to be used with pi-steer along with AgOpenGPS.
+
 
 ## Getting Started
 
