@@ -6,21 +6,14 @@
     "configurations": [
         
         {
-            "name": "salmiac_sprayer",
+            "name": "Debug unit tests in library 'salmiac_sprayer'",
+            "type": "lldb",
             "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "salmiac_sprayer (profile mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "salmiac_sprayer (release mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
+            "cargo": {
+                "args": [
+                    "test"
+                ]
+            }
         }
     ]
 }
