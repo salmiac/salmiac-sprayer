@@ -55,6 +55,7 @@ impl eframe::App for SalmiacSprayerApp {
         }
 
         let insets = ctx.input(|i| i.safe_area_insets());
+        #[cfg_attr(not(target_os = "android"), allow(unused_mut))]
         let mut top_margin = insets.0.top;
         #[cfg(target_os = "android")]
         if top_margin == 0.0 {
