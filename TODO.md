@@ -1,6 +1,6 @@
 # TODO
 
-## Fixes
-- [x] Fix immutable variable assignment error in `src/app.rs`
-- [x] Verify fix by running `cargo check`
-- [x] Run on Android to verify fallback margin logic (Build successful; skip run as no device found)
+## Fix Windows Build and Run
+- [x] Create `src/main.rs` to provide a binary entry point for desktop.
+- [x] Fix Tokio runtime panic on desktop by initializing a runtime in `main.rs`.
+- [x] Verify that `cargo run` works on Windows.
