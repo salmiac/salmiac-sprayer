@@ -100,4 +100,9 @@ This project uses **`NativeActivity`** via `android-native-activity` to maintain
 2.  **Initialization**: In `src/lib.rs`, `android_app` must be passed to `eframe::NativeOptions` to prevent runtime panics.
 3.  **Layout**: A fallback top margin (30.0 points) is implemented in `src/app.rs` to avoid overlapping the Android status bar when `safe_area_insets` are not reported by the OS.
 
-`n## Licensing`n`n- **Salmiac Sprayer:** Licensed under the MIT License (see [LICENSE](LICENSE)).`n- **Third-Party Components:** See [LICENSE-THIRD-PARTY](LICENSE-THIRD-PARTY.md) for details on fonts and other assets.
+
+## Licensing
+
+- **Salmiac Sprayer:** Licensed under the MIT License (see [LICENSE](LICENSE)).
+- **Third-Party Components:** See [LICENSE-THIRD-PARTY](LICENSE-THIRD-PARTY.md) for details on fonts and other assets.
+
