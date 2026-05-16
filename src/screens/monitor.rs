@@ -43,21 +43,25 @@ impl MonitorScreen {
             ui.add_space(20.0);
 
             // Pressure Displays
-            ui.horizontal(|ui| {
-                ui.vertical(|ui| {
+            ui.columns(2, |columns| {
+                columns[0].vertical_centered(|ui| {
                     ui.label(RichText::new("Target Pressure").size(18.0));
-                    egui::Frame::group(ui.style()).show(ui, |ui| {
-                        PressureDisplay::new(data.target_pressure).ui(ui);
-                    });
+                    egui::Frame::group(ui.style())
+                        .fill(ui.style().visuals.faint_bg_color)
+                        .show(ui, |ui| {
+                            ui.set_min_width(ui.available_width());
+                            PressureDisplay::new(data.target_pressure).ui(ui);
+                        });
                 });
 
-                ui.add_space(20.0);
-
-                ui.vertical(|ui| {
+                columns[1].vertical_centered(|ui| {
                     ui.label(RichText::new("Current Pressure").size(18.0));
-                    egui::Frame::group(ui.style()).show(ui, |ui| {
-                        PressureDisplay::new(data.current_pressure).ui(ui);
-                    });
+                    egui::Frame::group(ui.style())
+                        .fill(ui.style().visuals.faint_bg_color)
+                        .show(ui, |ui| {
+                            ui.set_min_width(ui.available_width());
+                            PressureDisplay::new(data.current_pressure).ui(ui);
+                        });
                 });
             });
 
