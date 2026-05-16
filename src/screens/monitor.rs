@@ -48,6 +48,7 @@ impl MonitorScreen {
                     ui.label(RichText::new("Target Pressure").size(18.0));
                     egui::Frame::group(ui.style())
                         .fill(ui.style().visuals.faint_bg_color)
+                        .inner_margin(4.0)
                         .show(ui, |ui| {
                             ui.set_min_width(ui.available_width());
                             PressureDisplay::new(data.target_pressure).ui(ui);
@@ -58,6 +59,7 @@ impl MonitorScreen {
                     ui.label(RichText::new("Current Pressure").size(18.0));
                     egui::Frame::group(ui.style())
                         .fill(ui.style().visuals.faint_bg_color)
+                        .inner_margin(4.0)
                         .show(ui, |ui| {
                             ui.set_min_width(ui.available_width());
                             PressureDisplay::new(data.current_pressure).ui(ui);

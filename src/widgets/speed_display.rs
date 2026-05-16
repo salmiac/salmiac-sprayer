@@ -1,4 +1,4 @@
-use egui::{RichText, Ui};
+use egui::{RichText, Ui, FontId, FontFamily};
 
 pub struct SpeedDisplay {
     pub speed_value: f32,
@@ -22,7 +22,11 @@ impl SpeedDisplay {
                 ui.vertical(|ui| {
                     ui.label("Min");
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(format!("{:.1}", self.min_speed)).size(32.0).strong());
+                        ui.label(
+                            RichText::new(format!("{:.1}", self.min_speed))
+                                .font(FontId::new(32.0, FontFamily::Monospace))
+                                .strong()
+                        );
                         ui.label(RichText::new(" km/h").size(14.0));
                     });
                 });
@@ -32,7 +36,11 @@ impl SpeedDisplay {
                 ui.vertical(|ui| {
                     ui.label("Max");
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(format!("{:.1}", self.max_speed)).size(32.0).strong());
+                        ui.label(
+                            RichText::new(format!("{:.1}", self.max_speed))
+                                .font(FontId::new(32.0, FontFamily::Monospace))
+                                .strong()
+                        );
                         ui.label(RichText::new(" km/h").size(14.0));
                     });
                 });
@@ -44,7 +52,11 @@ impl SpeedDisplay {
             ui.vertical(|ui| {
                 ui.label("Speed");
                 ui.horizontal(|ui| {
-                    ui.label(RichText::new(format!("{:.1}", self.speed_value)).size(96.0).strong());
+                    ui.label(
+                        RichText::new(format!("{:.1}", self.speed_value))
+                            .font(FontId::new(96.0, FontFamily::Monospace))
+                            .strong()
+                    );
                     ui.label(RichText::new(" km/h").size(18.0));
                 });
             });

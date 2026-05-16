@@ -10,13 +10,19 @@ impl PressureDisplay {
     }
 
     pub fn ui(&self, ui: &mut Ui) {
+        let available_width = ui.available_width();
+        // Science Gothic appears to be wider than the previous font.
+        // Using a more conservative ratio (3.8 instead of 2.8) to ensure "00.00" fits.
+        let font_size = (available_width / 3.8).clamp(32.0, 128.0);
+
         ui.vertical_centered(|ui| {
             ui.label(
                 RichText::new(format!("{:.2}", self.pressure_value))
-                    .font(FontId::new(72.0, FontFamily::Monospace))
+                    .font(FontId::new(font_size, FontFamily::Monospace))
                     .strong(),
             );
-            ui.label(RichText::new("bar").size(18.0));
+            ui.label(RichText::new("bar").size(font_size * 0.25));
         });
     }
 }
+
