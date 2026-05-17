@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 use salmiac_sprayer_lib::desktop_main;
 
 fn main() {
