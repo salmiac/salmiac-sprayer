@@ -1,4 +1,4 @@
-mod models;
+﻿mod models;
 pub mod services;
 pub mod widgets;
 pub mod screens;
@@ -10,9 +10,20 @@ use app::SalmiacSprayerApp;
 pub fn desktop_main() -> Result<(), eframe::Error> {
     env_logger::init();
 
+    let icon_data = include_bytes!("../assets/logo_64.png");
+    let icon = image::load_from_memory(icon_data)
+        .expect("Failed to load icon")
+        .to_rgba8();
+    let (width, height) = icon.dimensions();
+
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([600.0, 800.0]),
+            .with_inner_size([600.0, 800.0])
+            .with_icon(egui::IconData {
+                rgba: icon.into_raw(),
+                width,
+                height,
+            }),
         ..Default::default()
     };
 
