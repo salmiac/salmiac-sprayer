@@ -42,4 +42,9 @@
 
 ## Phase 7: Bug Fixes & Refinement
 - [x] Fix `build.rs` compilation error (missing argument for `embed_resource::compile`).
+- [x] Fix `build.rs` warning (unused `CompilationResult`).
+
+## Phase 8: Build Issues
+- [x] Verify if `bincode` is used or intended for use in the codebase.
+- [x] Switch to `bincode-next` (v3.0.0-rc.13) to resolve the tombstone build error without downgrading the version range.
 
