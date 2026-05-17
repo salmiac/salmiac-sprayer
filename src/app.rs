@@ -26,6 +26,8 @@ pub struct SalmiacSprayerApp {
 
 impl SalmiacSprayerApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        egui_extras::install_image_loaders(&cc.egui_ctx);
+        
         let settings = SprayerSettingsStorage::load_settings().unwrap_or_default();
         let (controller_service, data_rx) = ControllerService::new();
         
@@ -113,6 +115,11 @@ impl eframe::App for SalmiacSprayerApp {
                         } else if !settings_dirty {
                             self.show_nav_warning = false;
                         }
+
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add(egui::Image::new(egui::include_image!("../assets/logo_64.png")).max_width(32.0));
+                            ui.label(RichText::new("SALMIAC SPRAYER").strong().monospace());
+                        });
                     });
                 });
         });

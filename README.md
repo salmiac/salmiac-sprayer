@@ -1,4 +1,4 @@
-# salmiac-sprayer
+# <img src="assets/logo.svg" width="48" height="48" align="center"> Salmiac Sprayer
 
 Controller UI app to be used with pi-steer along with AgOpenGPS. This application is built in Rust using the `egui` and `eframe` libraries.
 
@@ -88,9 +88,26 @@ permissions = ["android.permission.INTERNET"]
   > **Important**: The `--lib` flag is required because the project contains both a binary and a library target.
 
 - **Build for Release:**
-  ```sh
-  cargo apk build --release --lib
-  ```
+  Building a release APK requires a signed keystore.
+
+  1. **Generate a keystore (if you don't have one):**
+     ```sh
+     keytool -genkey -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
+     ```
+  
+  2. **Configure `Cargo.toml`:** Add the following to your `Cargo.toml`, replacing the values with your credentials. **Do not commit passwords or the keystore to a public repository.**
+     ```toml
+     [package.metadata.android.signing.release]
+     path = "my-release-key.keystore"
+     keystore_password = "your-keystore-password"
+     key_alias = "my-key-alias"
+     key_password = "your-key-password"
+     ```
+
+  3. **Build the APK:**
+     ```sh
+     cargo apk build --release --lib
+     ```
 
 ### Implementation Notes for Android
 

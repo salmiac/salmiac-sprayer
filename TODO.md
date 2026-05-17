@@ -30,3 +30,16 @@
 - [x] Add `LICENSE-THIRD-PARTY.md` for font attribution.
 - [x] Implement in-app "About & Legal" section in Settings screen.
 - [x] Update `README.md` with current build and licensing info.
+
+## Phase 6: Logo & Branding
+- [x] Research and define logo concept (Salmiac diamond + Sprayer elements).
+- [x] Create SVG logo asset (`assets/logo.svg`).
+- [x] Generate PNG versions for app icon and documentation.
+- [x] Configure Windows executable icon.
+- [x] Integrate logo into the application's UI (top panel).
+- [x] Update documentation to include the logo.
+- [x] Refine logo with light blue outer line.
+
+## Phase 7: Bug Fixes & Refinement
+- [x] Fix `build.rs` compilation error (missing argument for `embed_resource::compile`).
+
