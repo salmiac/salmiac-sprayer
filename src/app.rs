@@ -1,11 +1,13 @@
 use egui::{Color32, RichText, FontData, FontDefinitions, FontFamily};
 use tokio::sync::broadcast;
+use std::time::Instant;
 use crate::models::sprayer_data::SprayerData;
 use crate::models::sprayer_settings::SprayerSettings;
 use crate::services::controller::ControllerService;
 use crate::services::storage::SprayerSettingsStorage;
 use crate::screens::monitor::MonitorScreen;
 use crate::screens::settings::SettingsScreen;
+use crate::protocol::{DEFAULT_STATUS_PORT, DEFAULT_COMMAND_PORT};
 
 #[derive(PartialEq, Clone, Copy)]
 enum Screen {
@@ -22,6 +24,7 @@ pub struct SalmiacSprayerApp {
     monitor_screen: MonitorScreen,
     settings_screen: SettingsScreen,
     show_nav_warning: bool,
+    last_data_received: Option<Instant>,
 }
 
 impl SalmiacSprayerApp {
@@ -44,7 +47,7 @@ impl SalmiacSprayerApp {
         // Start UDP Receiver
         let srv = controller_service.clone();
         tokio::spawn(async move {
-            let _ = srv.start_udp_receiver(1111).await;
+            let _ = srv.start_udp_receiver(DEFAULT_STATUS_PORT).await;
         });
 
         Self {
@@ -56,6 +59,7 @@ impl SalmiacSprayerApp {
             monitor_screen: MonitorScreen::new(),
             settings_screen: SettingsScreen::new(settings),
             show_nav_warning: false,
+            last_data_received: None,
         }
     }
 }
@@ -66,7 +70,18 @@ impl eframe::App for SalmiacSprayerApp {
         // Receive data from background task
         while let Ok(data) = self.data_rx.try_recv() {
             self.sprayer_data = data;
+            self.last_data_received = Some(Instant::now());
             ctx.request_repaint(); // Ensure UI updates on new data
+        }
+
+        let is_connected = if let Some(last) = self.last_data_received {
+            last.elapsed().as_secs_f32() < 2.0
+        } else {
+            false
+        };
+
+        if !is_connected && self.last_data_received.is_some() {
+            ctx.request_repaint_after(std::time::Duration::from_millis(500));
         }
 
         let insets = ctx.input(|i| i.safe_area_insets());
@@ -118,7 +133,6 @@ impl eframe::App for SalmiacSprayerApp {
 
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.add(egui::Image::new(egui::include_image!("../assets/logo_64.png")).max_width(32.0));
-                            ui.label(RichText::new("SALMIAC SPRAYER").strong().monospace());
                         });
                     });
                 });
@@ -127,11 +141,11 @@ impl eframe::App for SalmiacSprayerApp {
         egui::CentralPanel::default().show_inside(ui, |ui| {
             match self.current_screen {
                 Screen::Monitor => {
-                    let (activated, changed) = self.monitor_screen.ui(ui, &self.sprayer_data, &self.sprayer_settings);
+                    let (activated, changed) = self.monitor_screen.ui(ui, &self.sprayer_data, &self.sprayer_settings, is_connected);
                     if changed {
                         let _ = self.controller_service.send_button_state(
                             "255.255.255.255", 
-                            8888, 
+                            DEFAULT_COMMAND_PORT, 
                             activated, 
                             self.monitor_screen.constant_pressure_mode
                         );
@@ -142,7 +156,7 @@ impl eframe::App for SalmiacSprayerApp {
                         // Save clicked
                         self.sprayer_settings = self.settings_screen.settings.clone();
                         let _ = SprayerSettingsStorage::save_settings(&self.sprayer_settings);
-                        let _ = self.controller_service.send_settings("255.255.255.255", 8888, &self.sprayer_settings);
+                        let _ = self.controller_service.send_settings("255.255.255.255", DEFAULT_COMMAND_PORT, &self.sprayer_settings);
                         self.show_nav_warning = false;
                     }
                 }

@@ -16,15 +16,17 @@ pub struct SettingsScreen {
 
 impl SettingsScreen {
     pub fn new(settings: SprayerSettings) -> Self {
-        Self {
-            nozzle_spacing_str: format!("{:.2}", settings.nozzle_spacing),
-            litres_per_ha_str: format!("{:.0}", settings.litres_per_ha),
-            min_pressure_str: format!("{:.1}", settings.min_pressure),
-            max_pressure_str: format!("{:.1}", settings.max_pressure),
-            nominal_pressure_str: format!("{:.1}", settings.nominal_pressure),
+        let mut screen = Self {
+            nozzle_spacing_str: String::new(),
+            litres_per_ha_str: String::new(),
+            min_pressure_str: String::new(),
+            max_pressure_str: String::new(),
+            nominal_pressure_str: String::new(),
             original_settings: settings.clone(),
             settings,
-        }
+        };
+        screen.sync_strings();
+        screen
     }
 
     pub fn is_dirty(&self) -> bool {
@@ -141,15 +143,25 @@ impl SettingsScreen {
 
             ui.horizontal(|ui| {
                 let save_btn = egui::Button::new(RichText::new("Save").size(18.0));
-                if ui.add_sized([120.0, 40.0], save_btn).clicked() {
+                if ui.add_sized([100.0, 40.0], save_btn).clicked() {
                     self.original_settings = self.settings.clone();
                     saved_clicked = true;
                 }
 
-                ui.add_space(16.0);
+                ui.add_space(8.0);
 
-                if ui.button("Reset").clicked() {
+                let reset_btn = egui::Button::new(RichText::new("Reset").size(18.0));
+                if ui.add_sized([100.0, 40.0], reset_btn).clicked() {
                     self.settings = self.original_settings.clone();
+                    self.sync_strings();
+                    changed = true;
+                }
+
+                ui.add_space(8.0);
+
+                let defaults_btn = egui::Button::new(RichText::new("Defaults").size(18.0));
+                if ui.add_sized([100.0, 40.0], defaults_btn).clicked() {
+                    self.settings = SprayerSettings::default();
                     self.sync_strings();
                     changed = true;
                 }

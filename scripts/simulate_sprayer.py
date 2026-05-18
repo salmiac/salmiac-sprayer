@@ -145,7 +145,7 @@ class SprayerSimulator:
             
             nozzle_size = data[5] / 100.0
             nozzle_spacing = data[6] / 100.0
-            litres_per_ha = struct.unpack("<H", data[7:9])[0] / 100.0
+            litres_per_ha = struct.unpack("<H", data[7:9])[0] / 10.0
             min_pressure = struct.unpack("<H", data[9:11])[0] / 100.0
             max_pressure = struct.unpack("<H", data[11:13])[0] / 100.0
             nominal_pressure = struct.unpack("<H", data[13:15])[0] / 100.0

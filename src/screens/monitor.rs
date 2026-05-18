@@ -17,12 +17,29 @@ impl MonitorScreen {
         }
     }
 
-    pub fn ui(&mut self, ui: &mut Ui, data: &SprayerData, settings: &SprayerSettings) -> (bool, bool) {
+    pub fn ui(&mut self, ui: &mut Ui, data: &SprayerData, settings: &SprayerSettings, is_connected: bool) -> (bool, bool) {
         let mut state_changed = false;
 
         ui.vertical_centered(|ui| {
-            // Buttons Row
+            // Status and Buttons Row
             ui.horizontal(|ui| {
+                // Connection Status Indicator
+                let (status_text, status_color) = if is_connected {
+                    ("CONNECTED", Color32::from_rgb(76, 175, 80)) // Green
+                } else {
+                    ("DISCONNECTED", Color32::from_rgb(244, 67, 54)) // Red
+                };
+
+                egui::Frame::group(ui.style())
+                    .fill(status_color.gamma_multiply(0.1))
+                    .stroke(egui::Stroke::new(1.0, status_color))
+                    .inner_margin(4.0)
+                    .show(ui, |ui| {
+                        ui.label(RichText::new(status_text).color(status_color).strong().small());
+                    });
+
+                ui.add_space(8.0);
+
                 let btn_text = if self.controller_activated { "Controller ON" } else { "Controller OFF" };
                 let btn_color = if self.controller_activated { Color32::from_rgb(76, 175, 80) } else { Color32::from_rgb(33, 150, 243) };
                 

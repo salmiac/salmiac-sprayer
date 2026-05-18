@@ -1,8 +1,5 @@
-﻿# Tasks
+# Salmiac Sprayer Task List
 
-## Set Windows Corner Icon
-- [x] Investigate why res/icon.rc is not being applied (Explorer icon set, but window corner requires explicit eframe call)
-- [x] Add image dependency to Cargo.toml
-- [x] Update src/lib.rs to explicitly set the window icon in desktop_main
-- [x] Update build.rs to ensure it only runs on Windows
-- [x] Verify build on Windows
+## UI Fixes
+- [x] Remove "SALMIAC SPRAYER" text from top panel in `src/app.rs` while keeping the logo.
+- [x] Verify the change by building the project.

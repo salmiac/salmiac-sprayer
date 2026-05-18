@@ -1,8 +1,9 @@
-﻿mod models;
+mod models;
 pub mod services;
 pub mod widgets;
 pub mod screens;
 pub mod app;
+pub mod protocol;
 
 use app::SalmiacSprayerApp;
 
