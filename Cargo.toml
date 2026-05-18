@@ -33,6 +33,8 @@ embed-resource = "3.0.9"
 [target.'cfg(target_os = "android")'.dependencies]
 android-activity = { version = "0.6", features = ["native-activity"] }
 android_logger = "0.15.1"
+jni = "0.21"
+ndk-context = "0.1"
 
 [package.metadata.android]
 package = "com.salmiac.sprayer"
@@ -44,7 +46,11 @@ build_targets = ["aarch64-linux-android", "x86_64-linux-android"]
 min_sdk_version = 21
 target_sdk_version = 30
 stl = "c++_static"
-permissions = [
-    "android.permission.INTERNET",
-    "android.permission.ACCESS_NETWORK_STATE"
-]
+[[package.metadata.android.uses_permission]]
+name = "android.permission.INTERNET"
+[[package.metadata.android.uses_permission]]
+name = "android.permission.ACCESS_NETWORK_STATE"
+[[package.metadata.android.uses_permission]]
+name = "android.permission.CHANGE_WIFI_MULTICAST_STATE"
+[[package.metadata.android.uses_permission]]
+name = "android.permission.WAKE_LOCK"

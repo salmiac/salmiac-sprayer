@@ -2,22 +2,26 @@ import socket
 import threading
 import time
 import struct
+import sys
 
 # Configuration
-APP_IP = "127.0.0.1"
+DEFAULT_APP_IP = "127.0.0.1"
 STATUS_PORT = 1111  # App listens on this port
 COMMAND_PORT = 8888 # App sends to this port
 
 class SprayerSimulator:
-    def __init__(self):
+    def __init__(self, target_ip):
         self.running = True
         self.target_pressure = 2.5
         self.current_pressure = 2.45
         self.speed = 8.5
         self.boom_locked = False
+        self.target_ip = target_ip
 
         # Socket for sending status updates
         self.status_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        if self.target_ip == "255.255.255.255":
+            self.status_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         
         # Socket for receiving commands/settings
         self.command_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -26,7 +30,7 @@ class SprayerSimulator:
 
     def start(self):
         print(f"Starting simulator...")
-        print(f"Sending status to {APP_IP}:{STATUS_PORT}")
+        print(f"Sending status to {self.target_ip}:{STATUS_PORT}")
         print(f"Listening for commands on port {COMMAND_PORT}")
         print("Commands:")
         print("  tp <val>  Set target pressure")
@@ -116,7 +120,7 @@ class SprayerSimulator:
         packet = packet_without_crc + bytes([crc])
         
         try:
-            self.status_sock.sendto(packet, (APP_IP, STATUS_PORT))
+            self.status_sock.sendto(packet, (self.target_ip, STATUS_PORT))
         except Exception as e:
             print(f"Error sending status: {e}")
 
@@ -185,5 +189,10 @@ class SprayerSimulator:
             print(f"Unknown packet type {packet_type.hex()} from {addr}")
 
 if __name__ == "__main__":
-    sim = SprayerSimulator()
+    target_ip = DEFAULT_APP_IP
+    if len(sys.argv) > 1:
+        target_ip = sys.argv[1]
+    
+    sim = SprayerSimulator(target_ip)
     sim.start()
+

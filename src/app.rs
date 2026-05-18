@@ -51,7 +51,9 @@ impl SalmiacSprayerApp {
         // Start UDP Receiver
         let srv = controller_service.clone();
         tokio::spawn(async move {
-            let _ = srv.start_udp_receiver(DEFAULT_STATUS_PORT).await;
+            if let Err(e) = srv.start_udp_receiver(DEFAULT_STATUS_PORT).await {
+                log::error!("Failed to start UDP receiver: {}", e);
+            }
         });
 
         Self {

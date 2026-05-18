@@ -55,7 +55,9 @@ pub fn android_main(app: android_activity::AndroidApp) {
     use winit::platform::android::EventLoopBuilderExtAndroid;
 
     android_logger::init_once(
-        android_logger::Config::default().with_max_level(log::LevelFilter::Info),
+        android_logger::Config::default()
+            .with_max_level(log::LevelFilter::Debug)
+            .with_tag("SalmiacSprayer"),
     );
 
     // Create a tokio runtime for Android

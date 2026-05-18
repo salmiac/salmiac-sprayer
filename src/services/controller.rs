@@ -1,8 +1,76 @@
-use std::net::UdpSocket;
+use tokio::net::UdpSocket;
 use tokio::sync::broadcast;
 use crate::models::sprayer_data::SprayerData;
 use crate::models::sprayer_settings::SprayerSettings;
 use crate::protocol::*;
+
+#[cfg(target_os = "android")]
+fn acquire_android_locks() -> anyhow::Result<()> {
+    use jni::objects::JObject;
+    use jni::objects::JValue;
+    
+    log::info!("Attempting to acquire Android Network Locks (Multicast + Wifi)...");
+    let ctx = ndk_context::android_context();
+    let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }?;
+    let mut env = vm.attach_current_thread()?;
+    let context_obj = unsafe { JObject::from_raw(ctx.context().cast()) };
+
+    let result: jni::errors::Result<()> = (|| {
+        // Get WifiManager
+        let wifi_service_name = env.new_string("wifi")?;
+        let wifi_manager = env.call_method(
+            &context_obj,
+            "getSystemService",
+            "(Ljava/lang/String;)Ljava/lang/Object;",
+            &[JValue::Object(&wifi_service_name)],
+        )?.l()?;
+
+        // 1. Create and Acquire MulticastLock
+        let mc_lock_tag = env.new_string("SalmiacMulticastLock")?;
+        let multicast_lock = env.call_method(
+            &wifi_manager,
+            "createMulticastLock",
+            "(Ljava/lang/String;)Landroid/net/wifi/WifiManager$MulticastLock;",
+            &[JValue::Object(&mc_lock_tag)],
+        )?.l()?;
+        env.call_method(&multicast_lock, "acquire", "()V", &[])?;
+        log::info!("MulticastLock acquired.");
+
+        // 2. Create and Acquire WifiLock (WIFI_MODE_FULL_HIGH_PERF = 3)
+        let wf_lock_tag = env.new_string("SalmiacWifiLock")?;
+        let wifi_lock = env.call_method(
+            &wifi_manager,
+            "createWifiLock",
+            "(ILjava/lang/String;)Landroid/net/wifi/WifiManager$WifiLock;",
+            &[JValue::Int(3), JValue::Object(&wf_lock_tag)],
+        )?.l()?;
+        env.call_method(&wifi_lock, "acquire", "()V", &[])?;
+        log::info!("WifiLock acquired.");
+
+        Ok(())
+    })();
+
+    match result {
+        Ok(_) => {
+            log::info!("All Android Network Locks successfully acquired.");
+            Ok(())
+        }
+        Err(e) => {
+            log::error!("JNI error during lock acquisition: {:?}", e);
+            if env.exception_check()? {
+                log::error!("A Java exception occurred!");
+                env.exception_describe()?;
+                env.exception_clear()?;
+            }
+            Err(anyhow::anyhow!("Failed to acquire locks: {:?}", e))
+        }
+    }
+}
+
+#[cfg(not(target_os = "android"))]
+fn acquire_android_locks() -> anyhow::Result<()> {
+    Ok(())
+}
 
 #[derive(Clone)]
 pub struct ControllerService {
@@ -16,16 +84,21 @@ impl ControllerService {
     }
 
     pub async fn start_udp_receiver(&self, port: u16) -> anyhow::Result<()> {
-        log::info!("Starting UDP receiver on port {}", port);
-        let socket = UdpSocket::bind(format!("0.0.0.0:{}", port))?;
-        socket.set_nonblocking(true)?;
+        // Android requires a MulticastLock to even bind a UDP socket sometimes.
+        if let Err(e) = acquire_android_locks() {
+            log::warn!("Failed to acquire Android locks: {}", e);
+        }
+
+        let socket = UdpSocket::bind(format!("0.0.0.0:{}", port)).await?;
+        log::info!("UDP receiver bound successfully to 0.0.0.0:{}", port);
         let tx = self.tx.clone();
 
         tokio::spawn(async move {
             let mut buf = [0u8; 1024];
             loop {
-                match socket.recv_from(&mut buf) {
-                    Ok((len, _)) => {
+                match socket.recv_from(&mut buf).await {
+                    Ok((len, addr)) => {
+                        log::debug!("Received {} bytes from {}", len, addr);
                         match SprayerData::from_bytes(&buf[..len]) {
                             Ok(data) => {
                                 if let Err(e) = tx.send(data) {
@@ -36,9 +109,6 @@ impl ControllerService {
                                 log::warn!("Protocol parsing error: {}", e);
                             }
                         }
-                    }
-                    Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
                     }
                     Err(e) => {
                         log::error!("Network error in UDP receiver: {}. Stopping receiver.", e);
@@ -52,20 +122,20 @@ impl ControllerService {
     }
 
     pub fn send_settings(&self, target_ip: &str, port: u16, settings: &SprayerSettings) -> anyhow::Result<()> {
-        let socket = UdpSocket::bind("0.0.0.0:0")?;
-        socket.set_broadcast(true)?;
+        let std_socket = std::net::UdpSocket::bind("0.0.0.0:0")?;
+        std_socket.set_broadcast(true)?;
         let data = Self::pack_settings(settings);
         log::debug!("Sending settings to {}:{}. Bytes: {:02X?}", target_ip, port, data);
-        socket.send_to(&data, format!("{}:{}", target_ip, port))?;
+        std_socket.send_to(&data, format!("{}:{}", target_ip, port))?;
         Ok(())
     }
 
     pub fn send_button_state(&self, target_ip: &str, port: u16, activated: bool, constant_pressure: bool) -> anyhow::Result<()> {
-        let socket = UdpSocket::bind("0.0.0.0:0")?;
-        socket.set_broadcast(true)?;
+        let std_socket = std::net::UdpSocket::bind("0.0.0.0:0")?;
+        std_socket.set_broadcast(true)?;
         let data = Self::pack_button_state(activated, constant_pressure);
         log::debug!("Sending button state to {}:{}. Bytes: {:02X?}", target_ip, port, data);
-        socket.send_to(&data, format!("{}:{}", target_ip, port))?;
+        std_socket.send_to(&data, format!("{}:{}", target_ip, port))?;
         Ok(())
     }
 
