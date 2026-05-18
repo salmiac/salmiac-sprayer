@@ -113,12 +113,12 @@ impl eframe::App for SalmiacSprayerApp {
                         let settings_dirty = self.settings_screen.is_dirty();
                         
                         // Use a temporary variable for selection
-                        let mut selected_screen = self.current_screen;
+                        let selected_screen = self.current_screen;
                         
-                        let mon_resp = ui.selectable_value(&mut selected_screen, Screen::Monitor, "📊 Monitor");
-                        let set_resp = ui.selectable_value(&mut selected_screen, Screen::Settings, "⚙ Settings");
+                        let mon_resp = ui.add(egui::Button::new(RichText::new("📊 Monitor").size(20.0)).selected(selected_screen == Screen::Monitor));
+                        let set_resp = ui.add(egui::Button::new(RichText::new("⚙ Settings").size(20.0)).selected(selected_screen == Screen::Settings));
 
-                        if mon_resp.changed() {
+                        if mon_resp.clicked() {
                             if settings_dirty {
                                 self.show_nav_warning = true;
                             } else {
@@ -127,7 +127,7 @@ impl eframe::App for SalmiacSprayerApp {
                             }
                         }
 
-                        if set_resp.changed() {
+                        if set_resp.clicked() {
                             self.current_screen = Screen::Settings;
                             // self.show_nav_warning = false; // Optional: reset warning when switching to Settings
                         }
