@@ -28,7 +28,13 @@ class SprayerSimulator:
         print(f"Starting simulator...")
         print(f"Sending status to {APP_IP}:{STATUS_PORT}")
         print(f"Listening for commands on port {COMMAND_PORT}")
-        print("Commands: p <val> (pressure), s <val> (speed), b (toggle boom lock), q (quit)")
+        print("Commands:")
+        print("  tp <val>  Set target pressure")
+        print("  cp <val>  Set current pressure")
+        print("  p <val>   Set both target and current pressure")
+        print("  s <val>   Set speed")
+        print("  b         Toggle boom lock")
+        print("  q         Quit")
         
         # Start receiver thread
         self.receiver_thread = threading.Thread(target=self.receive_loop, daemon=True)
@@ -58,10 +64,16 @@ class SprayerSimulator:
                 
                 if action == 'q':
                     self.running = False
+                elif action == 'tp' and len(parts) > 1:
+                    self.target_pressure = float(parts[1])
+                    print(f"Target pressure set to {self.target_pressure}")
+                elif action == 'cp' and len(parts) > 1:
+                    self.current_pressure = float(parts[1])
+                    print(f"Current pressure set to {self.current_pressure}")
                 elif action == 'p' and len(parts) > 1:
                     self.target_pressure = float(parts[1])
-                    self.current_pressure = self.target_pressure # Snap for simplicity
-                    print(f"Pressure set to {self.target_pressure}")
+                    self.current_pressure = self.target_pressure
+                    print(f"Both pressures set to {self.target_pressure}")
                 elif action == 's' and len(parts) > 1:
                     self.speed = float(parts[1])
                     print(f"Speed set to {self.speed}")

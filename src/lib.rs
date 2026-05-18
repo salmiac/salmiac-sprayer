@@ -7,6 +7,18 @@ pub mod protocol;
 
 use app::SalmiacSprayerApp;
 
+#[cfg(target_os = "android")]
+#[no_mangle]
+pub extern "C" fn __cxa_pure_virtual() {
+    loop {}
+}
+
+#[cfg(target_os = "android")]
+#[no_mangle]
+pub extern "C" fn __gxx_personality_v0() {
+    loop {}
+}
+
 // Desktop entry point logic
 pub fn desktop_main() -> Result<(), eframe::Error> {
     env_logger::init();

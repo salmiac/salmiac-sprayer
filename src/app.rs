@@ -5,6 +5,7 @@ use crate::models::sprayer_data::SprayerData;
 use crate::models::sprayer_settings::SprayerSettings;
 use crate::services::controller::ControllerService;
 use crate::services::storage::SprayerSettingsStorage;
+use crate::services::audio::AudioService;
 use crate::screens::monitor::MonitorScreen;
 use crate::screens::settings::SettingsScreen;
 use crate::protocol::{DEFAULT_STATUS_PORT, DEFAULT_COMMAND_PORT};
@@ -20,11 +21,13 @@ pub struct SalmiacSprayerApp {
     sprayer_data: SprayerData,
     sprayer_settings: SprayerSettings,
     controller_service: ControllerService,
+    audio_service: AudioService,
     data_rx: broadcast::Receiver<SprayerData>,
     monitor_screen: MonitorScreen,
     settings_screen: SettingsScreen,
     show_nav_warning: bool,
     last_data_received: Option<Instant>,
+    last_beep_time: Instant,
 }
 
 impl SalmiacSprayerApp {
@@ -33,6 +36,7 @@ impl SalmiacSprayerApp {
         
         let settings = SprayerSettingsStorage::load_settings().unwrap_or_default();
         let (controller_service, data_rx) = ControllerService::new();
+        let audio_service = AudioService::new();
         
         // Load custom font
         let mut fonts = FontDefinitions::default();
@@ -55,18 +59,20 @@ impl SalmiacSprayerApp {
             sprayer_data: SprayerData::default(),
             sprayer_settings: settings.clone(),
             controller_service,
+            audio_service,
             data_rx,
             monitor_screen: MonitorScreen::new(),
             settings_screen: SettingsScreen::new(settings),
             show_nav_warning: false,
             last_data_received: None,
+            last_beep_time: Instant::now(),
         }
     }
 }
 
 impl eframe::App for SalmiacSprayerApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-        let ctx = ui.ctx();
+        let ctx = ui.ctx().clone();
         // Receive data from background task
         while let Ok(data) = self.data_rx.try_recv() {
             self.sprayer_data = data;
@@ -141,7 +147,7 @@ impl eframe::App for SalmiacSprayerApp {
         egui::CentralPanel::default().show_inside(ui, |ui| {
             match self.current_screen {
                 Screen::Monitor => {
-                    let (activated, changed) = self.monitor_screen.ui(ui, &self.sprayer_data, &self.sprayer_settings, is_connected);
+                    let (activated, changed, warning) = self.monitor_screen.ui(ui, &self.sprayer_data, &self.sprayer_settings, is_connected);
                     if changed {
                         let _ = self.controller_service.send_button_state(
                             "255.255.255.255", 
@@ -149,6 +155,11 @@ impl eframe::App for SalmiacSprayerApp {
                             activated, 
                             self.monitor_screen.constant_pressure_mode
                         );
+                    }
+
+                    if warning && self.last_beep_time.elapsed().as_secs_f32() > 2.0 {
+                        self.audio_service.play_beep();
+                        self.last_beep_time = Instant::now();
                     }
                 }
                 Screen::Settings => {
@@ -162,5 +173,11 @@ impl eframe::App for SalmiacSprayerApp {
                 }
             }
         });
+
+        // Ensure we keep repainting if warning is active to keep beep timer accurate
+        if self.current_screen == Screen::Monitor && self.monitor_screen.controller_activated {
+             ctx.request_repaint_after(std::time::Duration::from_millis(500));
+        }
     }
 }
+

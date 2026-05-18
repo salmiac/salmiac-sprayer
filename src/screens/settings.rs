@@ -12,6 +12,7 @@ pub struct SettingsScreen {
     min_pressure_str: String,
     max_pressure_str: String,
     nominal_pressure_str: String,
+    pressure_alert_threshold_str: String,
 }
 
 impl SettingsScreen {
@@ -22,6 +23,7 @@ impl SettingsScreen {
             min_pressure_str: String::new(),
             max_pressure_str: String::new(),
             nominal_pressure_str: String::new(),
+            pressure_alert_threshold_str: String::new(),
             original_settings: settings.clone(),
             settings,
         };
@@ -37,7 +39,8 @@ impl SettingsScreen {
         self.settings.min_pressure != self.original_settings.min_pressure ||
         self.settings.max_pressure != self.original_settings.max_pressure ||
         self.settings.nominal_pressure != self.original_settings.nominal_pressure ||
-        self.settings.nozzle_spacing != self.original_settings.nozzle_spacing
+        self.settings.nozzle_spacing != self.original_settings.nozzle_spacing ||
+        self.settings.pressure_alert_threshold != self.original_settings.pressure_alert_threshold
     }
 
     pub fn ui(&mut self, ui: &mut Ui) -> bool {
@@ -86,6 +89,12 @@ impl SettingsScreen {
             // Litres/ha
             if let Some(val) = numeric_row(ui, "Litres/ha (10-999)", &mut self.litres_per_ha_str, self.settings.litres_per_ha, 10.0, 999.0) {
                 self.settings.litres_per_ha = val;
+                changed = true;
+            }
+
+            // Pressure Alert Threshold
+            if let Some(val) = numeric_row(ui, "Pressure Alert (bar)", &mut self.pressure_alert_threshold_str, self.settings.pressure_alert_threshold, 0.1, 2.0) {
+                self.settings.pressure_alert_threshold = val;
                 changed = true;
             }
 
@@ -199,6 +208,7 @@ impl SettingsScreen {
         self.min_pressure_str = format!("{:.1}", self.settings.min_pressure);
         self.max_pressure_str = format!("{:.1}", self.settings.max_pressure);
         self.nominal_pressure_str = format!("{:.1}", self.settings.nominal_pressure);
+        self.pressure_alert_threshold_str = format!("{:.1}", self.settings.pressure_alert_threshold);
     }
 }
 

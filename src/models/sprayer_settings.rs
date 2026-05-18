@@ -36,6 +36,7 @@ pub struct SprayerSettings {
     pub nozzle_spacing: f32,
     pub min_speed: f32,
     pub max_speed: f32,
+    pub pressure_alert_threshold: f32,
 }
 
 impl Default for SprayerSettings {
@@ -55,6 +56,7 @@ impl Default for SprayerSettings {
             nozzle_spacing: 0.5,
             min_speed: 0.0,
             max_speed: 0.0,
+            pressure_alert_threshold: 0.5,
         }
     }
 }

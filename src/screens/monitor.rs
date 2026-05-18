@@ -17,8 +17,13 @@ impl MonitorScreen {
         }
     }
 
-    pub fn ui(&mut self, ui: &mut Ui, data: &SprayerData, settings: &SprayerSettings, is_connected: bool) -> (bool, bool) {
+    pub fn ui(&mut self, ui: &mut Ui, data: &SprayerData, settings: &SprayerSettings, is_connected: bool) -> (bool, bool, bool) {
         let mut state_changed = false;
+
+        let pressure_discrepancy = (data.target_pressure - data.current_pressure).abs();
+        let pressure_warning = self.controller_activated 
+            && data.target_pressure > 0.1 
+            && pressure_discrepancy > settings.pressure_alert_threshold;
 
         ui.vertical_centered(|ui| {
             // Status and Buttons Row
@@ -57,6 +62,18 @@ impl MonitorScreen {
                 }
             });
 
+            if pressure_warning {
+                ui.add_space(8.0);
+                egui::Frame::group(ui.style())
+                    .fill(Color32::RED.gamma_multiply(0.1))
+                    .stroke(egui::Stroke::new(1.0, Color32::RED))
+                    .inner_margin(8.0)
+                    .show(ui, |ui| {
+                        ui.set_min_width(ui.available_width());
+                        ui.label(RichText::new("⚠ PRESSURE DISCREPANCY DETECTED").color(Color32::RED).strong().size(20.0));
+                    });
+            }
+
             ui.add_space(20.0);
 
             // Pressure Displays
@@ -68,7 +85,7 @@ impl MonitorScreen {
                         .inner_margin(4.0)
                         .show(ui, |ui| {
                             ui.set_min_width(ui.available_width());
-                            PressureDisplay::new(data.target_pressure).ui(ui);
+                            PressureDisplay::new(data.target_pressure, false).ui(ui);
                         });
                 });
 
@@ -79,7 +96,7 @@ impl MonitorScreen {
                         .inner_margin(4.0)
                         .show(ui, |ui| {
                             ui.set_min_width(ui.available_width());
-                            PressureDisplay::new(data.current_pressure).ui(ui);
+                            PressureDisplay::new(data.current_pressure, pressure_warning).ui(ui);
                         });
                 });
             });
@@ -109,6 +126,6 @@ impl MonitorScreen {
             });
         });
 
-        (self.controller_activated, state_changed)
+        (self.controller_activated, state_changed, pressure_warning)
     }
 }
