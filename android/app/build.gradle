@@ -29,17 +29,27 @@ android {
 }
 
 task buildCargoLib(type: Exec) {
-    // Determine executable name based on OS
     def isWindows = org.gradle.internal.os.OperatingSystem.current().isWindows()
-    def command = isWindows ? 'cargo.exe' : 'cargo'
+    def cargo = isWindows ? 'cargo.exe' : 'cargo'
+    
+    // Check if we are running a release task
+    def isRelease = project.gradle.startParameter.taskNames.any { it.toLowerCase().contains("release") }
+    
+    def cmdArgs = ["ndk", "-t", "arm64-v8a", "-t", "x86_64", "-o", "android/app/src/main/jniLibs", "--link-libcxx-shared", "build", "--lib"]
+    if (isRelease) {
+        cmdArgs << "--release"
+        println "Building Rust library in RELEASE mode..."
+    } else {
+        println "Building Rust library in DEBUG mode..."
+    }
     
     workingDir "../../"
-    commandLine command, "ndk", "-t", "arm64-v8a", "-t", "x86_64", "-o", "android/app/src/main/jniLibs", "--link-libcxx-shared", "build", "--lib"
+    commandLine cargo, *cmdArgs
 }
 
-// Make sure the Rust library is built before the Android app
-tasks.whenTaskAdded { task ->
-    if (task.name == 'mergeDebugJniLibFolders' || task.name == 'mergeReleaseJniLibFolders') {
+// Ensure Rust is built before Android merges JNI libs
+tasks.configureEach { task ->
+    if (task.name.contains('merge') && task.name.contains('JniLibFolders')) {
         task.dependsOn buildCargoLib
     }
 }
