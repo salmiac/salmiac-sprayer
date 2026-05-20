@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.salmiac.sprayer'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.salmiac.sprayer"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+task buildCargoLib(type: Exec) {
+    // Determine executable name based on OS
+    def isWindows = org.gradle.internal.os.OperatingSystem.current().isWindows()
+    def command = isWindows ? 'cargo.exe' : 'cargo'
+    
+    workingDir "../../"
+    commandLine command, "ndk", "-t", "arm64-v8a", "-t", "x86_64", "-o", "android/app/src/main/jniLibs", "--link-libcxx-shared", "build", "--lib"
+}
+
+// Make sure the Rust library is built before the Android app
+tasks.whenTaskAdded { task ->
+    if (task.name == 'mergeDebugJniLibFolders' || task.name == 'mergeReleaseJniLibFolders') {
+        task.dependsOn buildCargoLib
+    }
+}

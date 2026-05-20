@@ -1,5 +1,5 @@
 #![windows_subsystem = "windows"]
-use salmiac_sprayer_lib::desktop_main;
+use salmiac_sprayer::desktop_main;
 
 fn main() {
     let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");

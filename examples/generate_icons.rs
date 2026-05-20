@@ -7,7 +7,7 @@ fn main() -> anyhow::Result<()> {
     let opt = resvg::usvg::Options::default();
     let rtree = resvg::usvg::Tree::from_data(&svg_data, &opt)?;
     
-    let sizes = [64, 128, 256, 512];
+    let sizes = [48, 64, 72, 96, 128, 144, 192, 256, 512];
     
     for size in sizes {
         let mut pixmap = tiny_skia::Pixmap::new(size, size).unwrap();
