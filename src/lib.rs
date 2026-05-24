@@ -1,9 +1,9 @@
+pub mod app;
 mod models;
+pub mod protocol;
+pub mod screens;
 pub mod services;
 pub mod widgets;
-pub mod screens;
-pub mod app;
-pub mod protocol;
 
 use app::SalmiacSprayerApp;
 
@@ -76,5 +76,6 @@ pub fn android_main(app: android_activity::AndroidApp) {
         "Salmiac Sprayer",
         options,
         Box::new(|cc| Ok(Box::new(SalmiacSprayerApp::new(cc)))),
-    ).unwrap();
+    )
+    .unwrap();
 }

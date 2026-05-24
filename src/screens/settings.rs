@@ -1,5 +1,5 @@
-use egui::{Ui, Color32, RichText, FontId, FontFamily};
-use crate::models::sprayer_settings::{SprayerSettings, get_nozzle_types};
+use crate::models::sprayer_settings::{get_nozzle_types, SprayerSettings};
+use egui::{Color32, FontFamily, FontId, RichText, Ui};
 
 const NOZZLE_CONSTANT: f32 = 2.3095;
 
@@ -36,14 +36,15 @@ impl SettingsScreen {
     pub fn is_dirty(&self) -> bool {
         // Compare with original settings to see if anything actually changed
         // We use a simplified comparison since Nozzle implements PartialEq
-        self.settings.nozzle_size != self.original_settings.nozzle_size ||
-        self.settings.litres_per_ha != self.original_settings.litres_per_ha ||
-        self.settings.min_pressure != self.original_settings.min_pressure ||
-        self.settings.max_pressure != self.original_settings.max_pressure ||
-        self.settings.nominal_pressure != self.original_settings.nominal_pressure ||
-        self.settings.nozzle_spacing != self.original_settings.nozzle_spacing ||
-        self.settings.pressure_alert_threshold != self.original_settings.pressure_alert_threshold ||
-        self.settings.target_ip != self.original_settings.target_ip
+        self.settings.nozzle_size != self.original_settings.nozzle_size
+            || self.settings.litres_per_ha != self.original_settings.litres_per_ha
+            || self.settings.min_pressure != self.original_settings.min_pressure
+            || self.settings.max_pressure != self.original_settings.max_pressure
+            || self.settings.nominal_pressure != self.original_settings.nominal_pressure
+            || self.settings.nozzle_spacing != self.original_settings.nozzle_spacing
+            || self.settings.pressure_alert_threshold
+                != self.original_settings.pressure_alert_threshold
+            || self.settings.target_ip != self.original_settings.target_ip
     }
 
     pub fn ui(&mut self, ui: &mut Ui) -> bool {
@@ -57,7 +58,7 @@ impl SettingsScreen {
             // Nozzle Size Selector with - and + buttons
             ui.horizontal(|ui| {
                 ui.label(RichText::new("Nozzle Size").size(16.0));
-                
+
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     let nozzle_types = get_nozzle_types();
                     let current_index = nozzle_types.iter().position(|n| n.number == self.settings.nozzle_size.number);
@@ -147,17 +148,15 @@ impl SettingsScreen {
                             .font(FontId::new(16.0, FontFamily::Monospace))
                             .desired_width(250.0);
                         let response = ui.add(edit);
-                        if response.changed() {
-                            if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_ok() {
+                        if response.changed()
+                            && self.target_ip_str.parse::<std::net::Ipv4Addr>().is_ok() {
                                 self.settings.target_ip = self.target_ip_str.clone();
                                 changed = true;
                             }
-                        }
-                        if response.lost_focus() {
-                            if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_err() {
+                        if response.lost_focus()
+                            && self.target_ip_str.parse::<std::net::Ipv4Addr>().is_err() {
                                 self.target_ip_str = self.settings.target_ip.clone();
                             }
-                        }
                     });
                 });
                 if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_err() && !self.target_ip_str.is_empty() {
@@ -207,8 +206,8 @@ impl SettingsScreen {
 
             // Nominal Pressure
             let nom_warning = if let Ok(val) = self.nominal_pressure_str.parse::<f32>() {
-                if val < self.settings.min_pressure || val > self.settings.max_pressure { 
-                    Some("Must be between Min and Max".to_string()) 
+                if val < self.settings.min_pressure || val > self.settings.max_pressure {
+                    Some("Must be between Min and Max".to_string())
                 } else { None }
             } else { None };
 
@@ -249,11 +248,11 @@ impl SettingsScreen {
 
             ui.add_space(32.0);
             ui.separator();
-            
+
             ui.collapsing("About & Legal", |ui| {
                 ui.small("Salmiac Sprayer v0.1.0");
                 ui.small("Copyright © 2026. Licensed under the MIT License.");
-                
+
                 ui.add_space(8.0);
                 ui.small("Third-Party Components:");
                 ui.small("• Michroma Font: Copyright © 2011 The Michroma Project Authors. Licensed under the SIL Open Font License, Version 1.1.");
@@ -269,8 +268,10 @@ impl SettingsScreen {
     }
 
     fn calculate_speeds(&mut self) {
-        self.settings.min_speed = calculate_speed_for_pressure(&self.settings, self.settings.min_pressure);
-        self.settings.max_speed = calculate_speed_for_pressure(&self.settings, self.settings.max_pressure);
+        self.settings.min_speed =
+            calculate_speed_for_pressure(&self.settings, self.settings.min_pressure);
+        self.settings.max_speed =
+            calculate_speed_for_pressure(&self.settings, self.settings.max_pressure);
     }
 
     fn sync_strings(&mut self) {
@@ -279,12 +280,20 @@ impl SettingsScreen {
         self.min_pressure_str = format!("{:.1}", self.settings.min_pressure);
         self.max_pressure_str = format!("{:.1}", self.settings.max_pressure);
         self.nominal_pressure_str = format!("{:.1}", self.settings.nominal_pressure);
-        self.pressure_alert_threshold_str = format!("{:.1}", self.settings.pressure_alert_threshold);
+        self.pressure_alert_threshold_str =
+            format!("{:.1}", self.settings.pressure_alert_threshold);
         self.target_ip_str = self.settings.target_ip.clone();
     }
 }
 
-fn numeric_row(ui: &mut Ui, label: &str, string_val: &mut String, current_val: f32, min: f32, max: f32) -> Option<f32> {
+fn numeric_row(
+    ui: &mut Ui,
+    label: &str,
+    string_val: &mut String,
+    current_val: f32,
+    min: f32,
+    max: f32,
+) -> Option<f32> {
     let mut new_val = None;
     ui.horizontal(|ui| {
         ui.label(RichText::new(label).size(16.0));
@@ -292,7 +301,7 @@ fn numeric_row(ui: &mut Ui, label: &str, string_val: &mut String, current_val: f
             let edit = egui::TextEdit::singleline(string_val)
                 .font(FontId::new(24.0, FontFamily::Monospace))
                 .desired_width(80.0);
-            
+
             let response = ui.add(edit);
             if response.changed() {
                 if let Ok(val) = string_val.parse::<f32>() {
@@ -315,17 +324,30 @@ fn numeric_row(ui: &mut Ui, label: &str, string_val: &mut String, current_val: f
     new_val
 }
 
-fn pressure_row(ui: &mut Ui, label: &str, string_val: &mut String, current_val: f32, settings: &SprayerSettings, constraint_warning: Option<String>) -> Option<f32> {
+fn pressure_row(
+    ui: &mut Ui,
+    label: &str,
+    string_val: &mut String,
+    current_val: f32,
+    settings: &SprayerSettings,
+    constraint_warning: Option<String>,
+) -> Option<f32> {
     let mut result = None;
     let min_range = 1.0;
     let max_range = 10.0;
-    
+
     ui.vertical(|ui| {
         ui.horizontal(|ui| {
             ui.label(RichText::new(label).size(16.0));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Plus button
-                if ui.add_sized([30.0, 30.0], egui::Button::new(RichText::new("+").size(20.0))).clicked() {
+                if ui
+                    .add_sized(
+                        [30.0, 30.0],
+                        egui::Button::new(RichText::new("+").size(20.0)),
+                    )
+                    .clicked()
+                {
                     let val = (current_val + 0.1).clamp(min_range, max_range);
                     result = Some(val);
                     *string_val = format!("{:.1}", val);
@@ -336,7 +358,7 @@ fn pressure_row(ui: &mut Ui, label: &str, string_val: &mut String, current_val: 
                 let edit = egui::TextEdit::singleline(string_val)
                     .font(FontId::new(24.0, FontFamily::Monospace))
                     .desired_width(80.0);
-                
+
                 let response = ui.add(edit);
                 if response.changed() {
                     if let Ok(val) = string_val.parse::<f32>() {
@@ -358,14 +380,20 @@ fn pressure_row(ui: &mut Ui, label: &str, string_val: &mut String, current_val: 
                 ui.add_space(4.0);
 
                 // Minus button
-                if ui.add_sized([30.0, 30.0], egui::Button::new(RichText::new("-").size(20.0))).clicked() {
+                if ui
+                    .add_sized(
+                        [30.0, 30.0],
+                        egui::Button::new(RichText::new("-").size(20.0)),
+                    )
+                    .clicked()
+                {
                     let val = (current_val - 0.1).clamp(min_range, max_range);
                     result = Some(val);
                     *string_val = format!("{:.1}", val);
                 }
             });
         });
-        
+
         // Show warnings
         let mut warning = constraint_warning;
         if let Ok(val) = string_val.parse::<f32>() {
@@ -378,22 +406,24 @@ fn pressure_row(ui: &mut Ui, label: &str, string_val: &mut String, current_val: 
 
         let speed_val = result.unwrap_or(current_val);
         let speed = calculate_speed_for_pressure(settings, speed_val);
-        
+
         ui.horizontal(|ui| {
             if let Some(msg) = warning {
                 ui.label(RichText::new(msg).color(Color32::RED).size(12.0));
             }
             ui.add_space(ui.available_width() - 80.0); // Align speed with input
-            ui.label(RichText::new(format!("{:.1} km/h", speed)).color(Color32::GRAY).size(14.0));
+            ui.label(
+                RichText::new(format!("{:.1} km/h", speed))
+                    .color(Color32::GRAY)
+                    .size(14.0),
+            );
         });
     });
     result
 }
 
 fn calculate_speed_for_pressure(settings: &SprayerSettings, pressure: f32) -> f32 {
-    let speed_per_sqrt_pressure = NOZZLE_CONSTANT 
-        * settings.nozzle_size.size_value 
-        * 600.0 
+    let speed_per_sqrt_pressure = NOZZLE_CONSTANT * settings.nozzle_size.size_value * 600.0
         / (settings.litres_per_ha * settings.nozzle_spacing);
     pressure.sqrt() * speed_per_sqrt_pressure
 }

@@ -1,14 +1,14 @@
-use egui::{Color32, RichText, FontData, FontDefinitions, FontFamily};
-use tokio::sync::broadcast;
-use std::time::Instant;
 use crate::models::sprayer_data::SprayerData;
 use crate::models::sprayer_settings::SprayerSettings;
-use crate::services::controller::ControllerService;
-use crate::services::storage::SprayerSettingsStorage;
-use crate::services::audio::AudioService;
+use crate::protocol::{DEFAULT_COMMAND_PORT, DEFAULT_STATUS_PORT};
 use crate::screens::monitor::MonitorScreen;
 use crate::screens::settings::SettingsScreen;
-use crate::protocol::{DEFAULT_STATUS_PORT, DEFAULT_COMMAND_PORT};
+use crate::services::audio::AudioService;
+use crate::services::controller::ControllerService;
+use crate::services::storage::SprayerSettingsStorage;
+use egui::{Color32, FontData, FontDefinitions, FontFamily, RichText};
+use std::time::Instant;
+use tokio::sync::broadcast;
 
 #[derive(PartialEq, Clone, Copy)]
 enum Screen {
@@ -33,18 +33,21 @@ pub struct SalmiacSprayerApp {
 impl SalmiacSprayerApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         egui_extras::install_image_loaders(&cc.egui_ctx);
-        
+
         let settings = SprayerSettingsStorage::load_settings().unwrap_or_default();
         let (controller_service, data_rx) = ControllerService::new();
         let audio_service = AudioService::new();
-        
+
         // Load custom font
         let mut fonts = FontDefinitions::default();
         fonts.font_data.insert(
             "Michroma".to_owned(),
             FontData::from_static(include_bytes!("../assets/fonts/Michroma-Regular.ttf")).into(),
         );
-        fonts.families.get_mut(&FontFamily::Monospace).unwrap()
+        fonts
+            .families
+            .get_mut(&FontFamily::Monospace)
+            .unwrap()
             .insert(0, "Michroma".to_owned());
         cc.egui_ctx.set_fonts(fonts);
 
@@ -111,12 +114,18 @@ impl eframe::App for SalmiacSprayerApp {
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
                         let settings_dirty = self.settings_screen.is_dirty();
-                        
+
                         // Use a temporary variable for selection
                         let selected_screen = self.current_screen;
-                        
-                        let mon_resp = ui.add(egui::Button::new(RichText::new("📊 Monitor").size(20.0)).selected(selected_screen == Screen::Monitor));
-                        let set_resp = ui.add(egui::Button::new(RichText::new("⚙ Settings").size(20.0)).selected(selected_screen == Screen::Settings));
+
+                        let mon_resp = ui.add(
+                            egui::Button::new(RichText::new("📊 Monitor").size(20.0))
+                                .selected(selected_screen == Screen::Monitor),
+                        );
+                        let set_resp = ui.add(
+                            egui::Button::new(RichText::new("⚙ Settings").size(20.0))
+                                .selected(selected_screen == Screen::Settings),
+                        );
 
                         if mon_resp.clicked() {
                             if settings_dirty {
@@ -134,13 +143,20 @@ impl eframe::App for SalmiacSprayerApp {
 
                         if self.show_nav_warning && settings_dirty {
                             ui.add_space(16.0);
-                            ui.label(RichText::new("⚠ Save or Reset changes before leaving!").color(Color32::RED).small());
+                            ui.label(
+                                RichText::new("⚠ Save or Reset changes before leaving!")
+                                    .color(Color32::RED)
+                                    .small(),
+                            );
                         } else if !settings_dirty {
                             self.show_nav_warning = false;
                         }
 
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            ui.add(egui::Image::new(egui::include_image!("../assets/logo_64.png")).max_width(32.0));
+                            ui.add(
+                                egui::Image::new(egui::include_image!("../assets/logo_64.png"))
+                                    .max_width(32.0),
+                            );
                         });
                     });
                 });
@@ -149,13 +165,18 @@ impl eframe::App for SalmiacSprayerApp {
         egui::CentralPanel::default().show_inside(ui, |ui| {
             match self.current_screen {
                 Screen::Monitor => {
-                    let (activated, changed, warning) = self.monitor_screen.ui(ui, &self.sprayer_data, &self.sprayer_settings, is_connected);
+                    let (activated, changed, warning) = self.monitor_screen.ui(
+                        ui,
+                        &self.sprayer_data,
+                        &self.sprayer_settings,
+                        is_connected,
+                    );
                     if changed {
                         let _ = self.controller_service.send_button_state(
-                            &self.sprayer_settings.target_ip, 
-                            DEFAULT_COMMAND_PORT, 
-                            activated, 
-                            self.monitor_screen.constant_pressure_mode
+                            &self.sprayer_settings.target_ip,
+                            DEFAULT_COMMAND_PORT,
+                            activated,
+                            self.monitor_screen.constant_pressure_mode,
                         );
                     }
 
@@ -169,7 +190,11 @@ impl eframe::App for SalmiacSprayerApp {
                         // Save clicked
                         self.sprayer_settings = self.settings_screen.settings.clone();
                         let _ = SprayerSettingsStorage::save_settings(&self.sprayer_settings);
-                        let _ = self.controller_service.send_settings(&self.sprayer_settings.target_ip, DEFAULT_COMMAND_PORT, &self.sprayer_settings);
+                        let _ = self.controller_service.send_settings(
+                            &self.sprayer_settings.target_ip,
+                            DEFAULT_COMMAND_PORT,
+                            &self.sprayer_settings,
+                        );
                         self.show_nav_warning = false;
                     }
                 }
@@ -178,8 +203,7 @@ impl eframe::App for SalmiacSprayerApp {
 
         // Ensure we keep repainting if warning is active to keep beep timer accurate
         if self.current_screen == Screen::Monitor && self.monitor_screen.controller_activated {
-             ctx.request_repaint_after(std::time::Duration::from_millis(500));
+            ctx.request_repaint_after(std::time::Duration::from_millis(500));
         }
     }
 }
-

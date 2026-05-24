@@ -1,5 +1,5 @@
+use crate::protocol::{DEFAULT_MULTIPLIER, STATUS_HEADER, STATUS_PACKET_LEN};
 use serde::{Deserialize, Serialize};
-use crate::protocol::{STATUS_HEADER, STATUS_PACKET_LEN, DEFAULT_MULTIPLIER};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct SprayerData {
@@ -25,7 +25,11 @@ impl SprayerData {
     /// Format: [Header(5), Target(2), Current(2), Speed(2), Locked(1), CRC(1)]
     pub fn from_bytes(bytes: &[u8]) -> anyhow::Result<Self> {
         if bytes.len() != STATUS_PACKET_LEN {
-            anyhow::bail!("Invalid data length: expected {}, got {}", STATUS_PACKET_LEN, bytes.len());
+            anyhow::bail!(
+                "Invalid data length: expected {}, got {}",
+                STATUS_PACKET_LEN,
+                bytes.len()
+            );
         }
 
         if bytes[0..5] != STATUS_HEADER {
@@ -35,7 +39,11 @@ impl SprayerData {
         // CRC check (sum of bytes from index 2 to 11)
         let calculated_crc = bytes[2..12].iter().fold(0u8, |acc, &x| acc.wrapping_add(x));
         if calculated_crc != bytes[12] {
-            anyhow::bail!("CRC mismatch: expected {}, got {}", calculated_crc, bytes[12]);
+            anyhow::bail!(
+                "CRC mismatch: expected {}, got {}",
+                calculated_crc,
+                bytes[12]
+            );
         }
 
         let target_pressure = u16::from_le_bytes([bytes[5], bytes[6]]) as f32 / DEFAULT_MULTIPLIER;
@@ -64,7 +72,7 @@ mod tests {
         bytes.extend_from_slice(&245u16.to_le_bytes());
         bytes.extend_from_slice(&850u16.to_le_bytes());
         bytes.push(1); // Locked
-        
+
         let crc = bytes[2..12].iter().fold(0u8, |acc, &x| acc.wrapping_add(x));
         bytes.push(crc);
 
@@ -72,7 +80,7 @@ mod tests {
         assert_eq!(result.target_pressure, 2.50);
         assert_eq!(result.current_pressure, 2.45);
         assert_eq!(result.speed, 8.50);
-        assert_eq!(result.boom_locked, true);
+        assert!(result.boom_locked);
     }
 
     #[test]
@@ -89,7 +97,10 @@ mod tests {
         let bytes = vec![0x80, 0x81, 0x70, 0x70, 0x07];
         let result = SprayerData::from_bytes(&bytes);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Invalid data length"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid data length"));
     }
 
     #[test]

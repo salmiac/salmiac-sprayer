@@ -79,3 +79,11 @@
 - [x] Add a Windows build job (`cargo build --release`).
 - [x] Add an Android build job (`cd android && ./gradlew assembleRelease`) with required dependencies.
 - [x] Add a job/step to create a GitHub Release and upload the Windows `.exe` and Android `.apk` files.
+
+## Automated Formatting & Linting Checks
+- [x] Create a new GitHub Actions workflow file `.github/workflows/ci.yml` for Continuous Integration.
+- [x] Configure the `ci.yml` workflow to trigger on push to `master` and on pull requests.
+- [x] Add a `fmt` job to check code formatting using `cargo fmt --all -- --check`.
+- [x] Add a `clippy` job to run linting using `cargo clippy --all-targets --all-features -- -D warnings`.
+- [x] Run `cargo fmt` locally to ensure the codebase passes the formatting checks.
+- [x] Run `cargo clippy --all-targets --all-features -- -D warnings` locally to ensure the codebase passes the linting checks.

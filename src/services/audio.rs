@@ -1,9 +1,18 @@
-use rodio::{OutputStream, OutputStreamHandle, Sink, source::{SineWave, Source}};
+use rodio::{
+    source::{SineWave, Source},
+    OutputStream, OutputStreamHandle, Sink,
+};
 use std::time::Duration;
 
 pub struct AudioService {
     _stream: Option<OutputStream>,
     handle: Option<OutputStreamHandle>,
+}
+
+impl Default for AudioService {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AudioService {

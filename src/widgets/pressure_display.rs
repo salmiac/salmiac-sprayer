@@ -1,4 +1,4 @@
-use egui::{Ui, FontId, FontFamily, Color32};
+use egui::{Color32, FontFamily, FontId, Ui};
 
 pub struct PressureDisplay {
     pub pressure_value: f32,
@@ -7,7 +7,10 @@ pub struct PressureDisplay {
 
 impl PressureDisplay {
     pub fn new(pressure_value: f32, is_warning: bool) -> Self {
-        Self { pressure_value, is_warning }
+        Self {
+            pressure_value,
+            is_warning,
+        }
     }
 
     pub fn ui(&self, ui: &mut Ui) {
@@ -48,4 +51,3 @@ impl PressureDisplay {
         });
     }
 }
-

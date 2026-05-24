@@ -1,4 +1,4 @@
-use egui::{RichText, Ui, FontId, FontFamily};
+use egui::{FontFamily, FontId, RichText, Ui};
 
 pub struct SpeedDisplay {
     pub speed_value: f32,
@@ -25,7 +25,7 @@ impl SpeedDisplay {
                         ui.label(
                             RichText::new(format!("{:.1}", self.min_speed))
                                 .font(FontId::new(32.0, FontFamily::Monospace))
-                                .strong()
+                                .strong(),
                         );
                         ui.label(RichText::new(" km/h").size(14.0));
                     });
@@ -39,7 +39,7 @@ impl SpeedDisplay {
                         ui.label(
                             RichText::new(format!("{:.1}", self.max_speed))
                                 .font(FontId::new(32.0, FontFamily::Monospace))
-                                .strong()
+                                .strong(),
                         );
                         ui.label(RichText::new(" km/h").size(14.0));
                     });
