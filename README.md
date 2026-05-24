@@ -66,10 +66,10 @@ The project uses a Gradle wrapper located in the `android/` directory.
 3.  **Find the APK:**
     The finished APK is located at: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-### 3. Run on Device
+### 3. Run on Device / Emulator
 
 - **Connect a device** (with USB debugging enabled) or start an Android emulator.
-3.  **Install and run:**
+- **Install and run (Debug):**
   ```sh
   ./gradlew installDebug
   ```
@@ -78,19 +78,33 @@ The project uses a Gradle wrapper located in the `android/` directory.
 
 To create a signed release APK for distribution:
 
-1.  **Generate a Release Build:**
+1.  **Generate a Keystore (if missing):**
+    ```sh
+    keytool -genkey -v -keystore release.keystore -alias sprayer-key -keyalg RSA -keysize 2048 -validity 10000
+    ```
+
+2.  **Configure Automatic Signing:**
+    Create a file at `android/keystore.properties` (ignored by git):
+    ```properties
+    storeFile=../release.keystore
+    storePassword=your_password
+    keyAlias=sprayer-key
+    keyPassword=your_password
+    ```
+
+3.  **Build and Install Release:**
     ```sh
     cd android
-    ./gradlew assembleRelease
+    ./gradlew installRelease
     ```
+    *Note: `installRelease` will only be available after `keystore.properties` is created.*
 
-2.  **Sign the APK:**
-    Use the `apksigner` tool from the Android SDK:
+4.  **Manual Signing (Alternative):**
+    If you prefer manual signing:
     ```sh
-    apksigner sign --ks your-release-key.keystore --out SalmiacSprayer.apk android/app/build/outputs/apk/release/app-release-unsigned.apk
+    ./gradlew assembleRelease
+    apksigner sign --ks release.keystore --out SalmiacSprayer.apk android/app/build/outputs/apk/release/app-release-unsigned.apk
     ```
-    *Note: You can also configure automatic signing in `android/app/build.gradle` using `signingConfigs`.*
-
 
 ## Implementation Notes for Android
 
@@ -105,4 +119,3 @@ This project uses **`NativeActivity`** via `android-native-activity`. The build 
 
 - **Salmiac Sprayer:** Licensed under the MIT License (see [LICENSE](LICENSE)).
 - **Third-Party Components:** See [LICENSE-THIRD-PARTY](LICENSE-THIRD-PARTY.md) for details on fonts and other assets.
-
