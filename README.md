@@ -2,6 +2,12 @@
 
 Controller UI app to be used with pi-steer along with AgOpenGPS. This application is built in Rust using the `egui` and `eframe` libraries.
 
+## Features
+
+- **Cross-Platform UI**: Built with `egui` and `eframe` for Desktop and Android.
+- **Configurable Network Target IP**: Allows you to set a specific IP address for the controller communication in the Settings screen, defaulting to broadcast (255.255.255.255).
+- **Sprayer Settings Management**: Manage nozzle size, application rate, and pressure limits easily.
+
 ## Development Setup
 
 This guide will help you set up your development environment to build and run the application.
@@ -105,6 +111,12 @@ To create a signed release APK for distribution:
     ./gradlew assembleRelease
     apksigner sign --ks release.keystore --out SalmiacSprayer.apk android/app/build/outputs/apk/release/app-release-unsigned.apk
     ```
+
+## CI/CD and Automated Builds
+
+This project utilizes GitHub Actions for Continuous Integration and Continuous Deployment (CI/CD):
+
+- **Automated Release Builds**: Pushing to the `master` branch automatically triggers a workflow to build the Windows `.exe` and Android `.apk` (Release mode) and creates a GitHub Release containing the artifacts.
 
 ## Implementation Notes for Android
 
