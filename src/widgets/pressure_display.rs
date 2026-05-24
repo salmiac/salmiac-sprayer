@@ -12,9 +12,10 @@ impl PressureDisplay {
 
     pub fn ui(&self, ui: &mut Ui) {
         let available_width = ui.available_width();
-        // Science Gothic appears to be wider than the previous font.
-        // Using a more conservative ratio (3.8 instead of 2.8) to ensure "00.00" fits.
-        let font_size = (available_width / 3.8).clamp(32.0, 128.0);
+        // Since pressure displays are vertically stacked (taking full width of the screen),
+        // we divide available_width by 7.6 (equivalent to 3.8 in a 2-column layout)
+        // and clamp it between 32.0 and 64.0 to prevent size overflow.
+        let font_size = (available_width / 7.6).clamp(32.0, 64.0);
 
         let color = if self.is_warning {
             Color32::RED
@@ -22,14 +23,28 @@ impl PressureDisplay {
             ui.visuals().text_color()
         };
 
+        use egui::text::{LayoutJob, TextFormat};
+        let mut job = LayoutJob::default();
+        job.append(
+            &format!("{:.2}", self.pressure_value),
+            0.0,
+            TextFormat {
+                font_id: FontId::new(font_size, FontFamily::Monospace),
+                color,
+                ..Default::default()
+            },
+        );
+        job.append(
+            " bar",
+            0.0,
+            TextFormat {
+                font_id: FontId::new(font_size * 0.35, FontFamily::Proportional),
+                color,
+                ..Default::default()
+            },
+        );
         ui.vertical_centered(|ui| {
-            ui.label(
-                RichText::new(format!("{:.2}", self.pressure_value))
-                    .font(FontId::new(font_size, FontFamily::Monospace))
-                    .color(color)
-                    .strong(),
-            );
-            ui.label(RichText::new("bar").size(font_size * 0.25).color(color));
+            ui.label(job);
         });
     }
 }

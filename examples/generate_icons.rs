@@ -1,5 +1,4 @@
 use std::fs;
-use std::path::Path;
 
 fn main() -> anyhow::Result<()> {
     let svg_data = fs::read("assets/logo.svg")?;

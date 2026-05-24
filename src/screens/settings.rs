@@ -13,6 +13,7 @@ pub struct SettingsScreen {
     max_pressure_str: String,
     nominal_pressure_str: String,
     pressure_alert_threshold_str: String,
+    target_ip_str: String,
 }
 
 impl SettingsScreen {
@@ -24,6 +25,7 @@ impl SettingsScreen {
             max_pressure_str: String::new(),
             nominal_pressure_str: String::new(),
             pressure_alert_threshold_str: String::new(),
+            target_ip_str: String::new(),
             original_settings: settings.clone(),
             settings,
         };
@@ -40,7 +42,8 @@ impl SettingsScreen {
         self.settings.max_pressure != self.original_settings.max_pressure ||
         self.settings.nominal_pressure != self.original_settings.nominal_pressure ||
         self.settings.nozzle_spacing != self.original_settings.nozzle_spacing ||
-        self.settings.pressure_alert_threshold != self.original_settings.pressure_alert_threshold
+        self.settings.pressure_alert_threshold != self.original_settings.pressure_alert_threshold ||
+        self.settings.target_ip != self.original_settings.target_ip
     }
 
     pub fn ui(&mut self, ui: &mut Ui) -> bool {
@@ -51,31 +54,68 @@ impl SettingsScreen {
             ui.heading("Settings");
             ui.add_space(16.0);
 
-            // Nozzle Size Dropdown
+            // Nozzle Size Selector with - and + buttons
             ui.horizontal(|ui| {
-                ui.label("Nozzle Size:");
-                let nozzle_types = get_nozzle_types();
+                ui.label(RichText::new("Nozzle Size").size(16.0));
                 
-                // Color indicator for selected nozzle
-                let current_color = self.settings.nozzle_size.color_code;
-                let (rect, _) = ui.allocate_exact_size(egui::vec2(24.0, 24.0), egui::Sense::hover());
-                ui.painter().rect_filled(rect, 4.0, Color32::from_rgb(current_color[0], current_color[1], current_color[2]));
-                ui.painter().rect_stroke(rect, 4.0, egui::Stroke::new(1.0, Color32::GRAY), egui::StrokeKind::Outside);
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let nozzle_types = get_nozzle_types();
+                    let current_index = nozzle_types.iter().position(|n| n.number == self.settings.nozzle_size.number);
 
-                egui::ComboBox::from_id_salt("nozzle_size")
-                    .selected_text(format!("{} - {}", self.settings.nozzle_size.number, self.settings.nozzle_size.color_name))
-                    .show_ui(ui, |ui| {
-                        for nozzle in nozzle_types {
-                            let color = nozzle.color_code;
-                            ui.horizontal(|ui| {
-                                let (rect, _) = ui.allocate_exact_size(egui::vec2(16.0, 16.0), egui::Sense::hover());
-                                ui.painter().rect_filled(rect, 2.0, Color32::from_rgb(color[0], color[1], color[2]));
-                                if ui.selectable_value(&mut self.settings.nozzle_size, nozzle.clone(), format!("{} - {}", nozzle.number, nozzle.color_name)).clicked() {
-                                    changed = true;
-                                }
-                            });
+                    // Plus button (next size)
+                    if ui.add_sized([30.0, 30.0], egui::Button::new(RichText::new("+").size(20.0))).clicked() {
+                        if let Some(idx) = current_index {
+                            if idx + 1 < nozzle_types.len() {
+                                self.settings.nozzle_size = nozzle_types[idx + 1].clone();
+                                changed = true;
+                            }
                         }
-                    });
+                    }
+
+                    ui.add_space(4.0);
+
+                    // ComboBox
+                    let selected_text = RichText::new(format!("{} - {}", self.settings.nozzle_size.number, self.settings.nozzle_size.color_name))
+                        .font(FontId::new(18.0, FontFamily::Proportional));
+
+                    let combobox_types = nozzle_types.clone();
+                    egui::ComboBox::from_id_salt("nozzle_size")
+                        .selected_text(selected_text)
+                        .show_ui(ui, |ui| {
+                            for nozzle in combobox_types {
+                                let color = nozzle.color_code;
+                                ui.horizontal(|ui| {
+                                    let (rect, _) = ui.allocate_exact_size(egui::vec2(16.0, 16.0), egui::Sense::hover());
+                                    ui.painter().rect_filled(rect, 2.0, Color32::from_rgb(color[0], color[1], color[2]));
+                                    let item_text = RichText::new(format!("{} - {}", nozzle.number, nozzle.color_name))
+                                        .font(FontId::new(18.0, FontFamily::Proportional));
+                                    if ui.selectable_value(&mut self.settings.nozzle_size, nozzle.clone(), item_text).clicked() {
+                                        changed = true;
+                                    }
+                                });
+                            }
+                        });
+
+                    ui.add_space(4.0);
+
+                    // Color indicator for selected nozzle
+                    let current_color = self.settings.nozzle_size.color_code;
+                    let (rect, _) = ui.allocate_exact_size(egui::vec2(24.0, 24.0), egui::Sense::hover());
+                    ui.painter().rect_filled(rect, 4.0, Color32::from_rgb(current_color[0], current_color[1], current_color[2]));
+                    ui.painter().rect_stroke(rect, 4.0, egui::Stroke::new(1.0, Color32::GRAY), egui::StrokeKind::Outside);
+
+                    ui.add_space(4.0);
+
+                    // Minus button (previous size)
+                    if ui.add_sized([30.0, 30.0], egui::Button::new(RichText::new("-").size(20.0))).clicked() {
+                        if let Some(idx) = current_index {
+                            if idx > 0 {
+                                self.settings.nozzle_size = nozzle_types[idx - 1].clone();
+                                changed = true;
+                            }
+                        }
+                    }
+                });
             });
 
             ui.add_space(8.0);
@@ -97,6 +137,37 @@ impl SettingsScreen {
                 self.settings.pressure_alert_threshold = val;
                 changed = true;
             }
+
+            // Target IP
+            ui.vertical(|ui| {
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new("Target IP").size(16.0));
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let edit = egui::TextEdit::singleline(&mut self.target_ip_str)
+                            .font(FontId::new(16.0, FontFamily::Monospace))
+                            .desired_width(250.0);
+                        let response = ui.add(edit);
+                        if response.changed() {
+                            if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_ok() {
+                                self.settings.target_ip = self.target_ip_str.clone();
+                                changed = true;
+                            }
+                        }
+                        if response.lost_focus() {
+                            if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_err() {
+                                self.target_ip_str = self.settings.target_ip.clone();
+                            }
+                        }
+                    });
+                });
+                if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_err() && !self.target_ip_str.is_empty() {
+                    ui.horizontal(|ui| {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.label(RichText::new("Invalid IPv4 address").color(Color32::RED).size(12.0));
+                        });
+                    });
+                }
+            });
 
             ui.add_space(8.0);
             ui.separator();
@@ -209,6 +280,7 @@ impl SettingsScreen {
         self.max_pressure_str = format!("{:.1}", self.settings.max_pressure);
         self.nominal_pressure_str = format!("{:.1}", self.settings.nominal_pressure);
         self.pressure_alert_threshold_str = format!("{:.1}", self.settings.pressure_alert_threshold);
+        self.target_ip_str = self.settings.target_ip.clone();
     }
 }
 

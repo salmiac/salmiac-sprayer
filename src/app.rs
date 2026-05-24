@@ -152,7 +152,7 @@ impl eframe::App for SalmiacSprayerApp {
                     let (activated, changed, warning) = self.monitor_screen.ui(ui, &self.sprayer_data, &self.sprayer_settings, is_connected);
                     if changed {
                         let _ = self.controller_service.send_button_state(
-                            "255.255.255.255", 
+                            &self.sprayer_settings.target_ip, 
                             DEFAULT_COMMAND_PORT, 
                             activated, 
                             self.monitor_screen.constant_pressure_mode
@@ -169,7 +169,7 @@ impl eframe::App for SalmiacSprayerApp {
                         // Save clicked
                         self.sprayer_settings = self.settings_screen.settings.clone();
                         let _ = SprayerSettingsStorage::save_settings(&self.sprayer_settings);
-                        let _ = self.controller_service.send_settings("255.255.255.255", DEFAULT_COMMAND_PORT, &self.sprayer_settings);
+                        let _ = self.controller_service.send_settings(&self.sprayer_settings.target_ip, DEFAULT_COMMAND_PORT, &self.sprayer_settings);
                         self.show_nav_warning = false;
                     }
                 }

@@ -77,36 +77,40 @@ impl MonitorScreen {
             ui.add_space(20.0);
 
             // Pressure Displays
-            ui.columns(2, |columns| {
-                columns[0].vertical_centered(|ui| {
-                    ui.label(RichText::new("Target Pressure").size(18.0));
-                    egui::Frame::group(ui.style())
-                        .fill(ui.style().visuals.faint_bg_color)
-                        .inner_margin(4.0)
-                        .show(ui, |ui| {
-                            ui.set_min_width(ui.available_width());
-                            PressureDisplay::new(data.target_pressure, false).ui(ui);
-                        });
-                });
+            ui.vertical_centered(|ui| {
+                ui.label(RichText::new("Target Pressure").size(18.0));
+                egui::Frame::group(ui.style())
+                    .fill(ui.style().visuals.faint_bg_color)
+                    .inner_margin(4.0)
+                    .show(ui, |ui| {
+                        ui.set_min_width(ui.available_width());
+                        PressureDisplay::new(data.target_pressure, false).ui(ui);
+                    });
 
-                columns[1].vertical_centered(|ui| {
-                    ui.label(RichText::new("Current Pressure").size(18.0));
-                    egui::Frame::group(ui.style())
-                        .fill(ui.style().visuals.faint_bg_color)
-                        .inner_margin(4.0)
-                        .show(ui, |ui| {
-                            ui.set_min_width(ui.available_width());
-                            PressureDisplay::new(data.current_pressure, pressure_warning).ui(ui);
-                        });
-                });
+                ui.add_space(16.0);
+
+                ui.label(RichText::new("Current Pressure").size(18.0));
+                egui::Frame::group(ui.style())
+                    .fill(ui.style().visuals.faint_bg_color)
+                    .inner_margin(4.0)
+                    .show(ui, |ui| {
+                        ui.set_min_width(ui.available_width());
+                        PressureDisplay::new(data.current_pressure, pressure_warning).ui(ui);
+                    });
             });
 
             ui.add_space(20.0);
 
             // Speed Display
-            egui::Frame::group(ui.style()).show(ui, |ui| {
-                SpeedDisplay::new(data.speed, settings.min_speed, settings.max_speed).ui(ui);
-            });
+            egui::Frame::group(ui.style())
+                .fill(ui.style().visuals.faint_bg_color)
+                .inner_margin(12.0)
+                .show(ui, |ui| {
+                    ui.set_min_width(ui.available_width());
+                    ui.vertical_centered(|ui| {
+                        SpeedDisplay::new(data.speed, settings.min_speed, settings.max_speed).ui(ui);
+                    });
+                });
 
             ui.add_space(20.0);
 

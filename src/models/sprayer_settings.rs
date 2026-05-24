@@ -37,6 +37,7 @@ pub struct SprayerSettings {
     pub min_speed: f32,
     pub max_speed: f32,
     pub pressure_alert_threshold: f32,
+    pub target_ip: String,
 }
 
 impl Default for SprayerSettings {
@@ -57,6 +58,7 @@ impl Default for SprayerSettings {
             min_speed: 0.0,
             max_speed: 0.0,
             pressure_alert_threshold: 0.5,
+            target_ip: "255.255.255.255".to_string(),
         }
     }
 }
@@ -83,5 +85,24 @@ impl SprayerSettings {
         }
         
         bytes
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_target_ip() {
+        let settings = SprayerSettings::default();
+        assert_eq!(settings.target_ip, "255.255.255.255");
+    }
+
+    #[test]
+    fn test_ipv4_parsing_behavior() {
+        assert!("192.168.1.100".parse::<std::net::Ipv4Addr>().is_ok());
+        assert!("255.255.255.255".parse::<std::net::Ipv4Addr>().is_ok());
+        assert!("256.256.256.256".parse::<std::net::Ipv4Addr>().is_err());
+        assert!("not_an_ip".parse::<std::net::Ipv4Addr>().is_err());
     }
 }

@@ -49,16 +49,31 @@ impl SpeedDisplay {
             ui.add_space(16.0);
 
             // Main Speed
-            ui.vertical(|ui| {
+            ui.vertical_centered(|ui| {
                 ui.label("Speed");
-                ui.horizontal(|ui| {
-                    ui.label(
-                        RichText::new(format!("{:.1}", self.speed_value))
-                            .font(FontId::new(96.0, FontFamily::Monospace))
-                            .strong()
-                    );
-                    ui.label(RichText::new(" km/h").size(18.0));
-                });
+            });
+            use egui::text::{LayoutJob, TextFormat};
+            let mut job = LayoutJob::default();
+            job.append(
+                &format!("{:.1}", self.speed_value),
+                0.0,
+                TextFormat {
+                    font_id: FontId::new(96.0, FontFamily::Monospace),
+                    color: ui.visuals().text_color(),
+                    ..Default::default()
+                },
+            );
+            job.append(
+                " km/h",
+                0.0,
+                TextFormat {
+                    font_id: FontId::new(18.0, FontFamily::Proportional),
+                    color: ui.visuals().text_color(),
+                    ..Default::default()
+                },
+            );
+            ui.vertical_centered(|ui| {
+                ui.label(job);
             });
         });
     }
