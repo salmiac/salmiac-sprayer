@@ -117,6 +117,7 @@ To create a signed release APK for distribution:
 This project utilizes GitHub Actions for Continuous Integration and Continuous Deployment (CI/CD):
 
 - **Automated Release Builds**: Pushing to the `master` branch automatically triggers a workflow to build the Windows `.exe` and Android `.apk` (Release mode) and creates a GitHub Release containing the artifacts.
+- **Automated Code Quality Checks**: Every push or pull request to the `master` branch triggers a workflow that runs `cargo fmt` to ensure code formatting adheres to style guidelines, and `cargo clippy` to perform static analysis and catch common mistakes.
 
 ## Implementation Notes for Android
 
