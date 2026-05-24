@@ -72,3 +72,10 @@
 - [x] Run the generation script and verify PNGs are updated in `assets/`.
 - [x] Generate `icon.ico` from the exported PNGs and update `assets/icon.ico`.
 - [x] Copy the generated PNGs and `icon.ico` to their respective Android resource paths (`android/app/src/main/res/` and `android/app/src/main/assets/`).
+
+## GitHub Actions Release Workflow
+- [x] Create `.github/workflows/release.yml`.
+- [x] Configure workflow to trigger on push to `master` branch.
+- [x] Add a Windows build job (`cargo build --release`).
+- [x] Add an Android build job (`cd android && ./gradlew assembleRelease`) with required dependencies.
+- [x] Add a job/step to create a GitHub Release and upload the Windows `.exe` and Android `.apk` files.
