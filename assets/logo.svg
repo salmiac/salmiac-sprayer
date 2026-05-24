@@ -1,6 +1,6 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
     <!-- Background Diamond (Salmiakki) with Light Blue Outer Line -->
-    <path d="M256 40L440 256L256 472L72 256L256 40Z" fill="#1A1A1A" stroke="#5DADE2" stroke-width="8"/>
+    <path d="M256 40L440 256L256 472L72 256L256 40Z" fill="#1A1A1A" stroke="#5DADE2" stroke-width="24"/>
     
     <!-- Spray Rays -->
     <g stroke="#3498DB" stroke-width="20" stroke-linecap="round">

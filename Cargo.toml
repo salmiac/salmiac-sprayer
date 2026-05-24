@@ -7,6 +7,10 @@ edition = "2021"
 name = "salmiac_sprayer"
 crate-type = ["cdylib", "rlib"]
 
+[[bin]]
+name = "salmiac-sprayer-app"
+path = "src/main.rs"
+
 [dependencies]
 eframe = { version = "0.34.2", default-features = false, features = ["glow", "persistence", "android-native-activity", "default_fonts"] }
 egui = "0.34.2"

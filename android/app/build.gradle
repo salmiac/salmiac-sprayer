@@ -10,15 +10,15 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace 'com.salmiac.sprayer'
-    compileSdk 34
+    namespace = 'com.salmiac.sprayer'
+    compileSdk = 34
 
     defaultConfig {
-        applicationId "com.salmiac.sprayer"
-        minSdk 21
-        targetSdk 34
-        versionCode 1
-        versionName "0.1.0"
+        applicationId = "com.salmiac.sprayer"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = 1
+        versionName = "0.1.0"
     }
 
     signingConfigs {
@@ -43,7 +43,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             if (keystorePropertiesFile.exists()) {
-                signingConfig signingConfigs.release
+                signingConfig = signingConfigs.release
             }
         }
     }

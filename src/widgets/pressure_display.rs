@@ -1,4 +1,4 @@
-use egui::{RichText, Ui, FontId, FontFamily, Color32};
+use egui::{Ui, FontId, FontFamily, Color32};
 
 pub struct PressureDisplay {
     pub pressure_value: f32,

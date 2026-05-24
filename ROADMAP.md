@@ -14,5 +14,6 @@
 - [x] UI layout: Center-align Speed panel, and display Target and Current pressure vertically and center-aligned.
 - [x] UI tuning: Fix Speed panel centering & place pressure unit "bar" on same line.
 - [x] UI layout bug: Fix Pressure box size overflow on stacked layout.
+- [ ] UI assets: Update logo PNG files and icon.ico from new SVG.
 - CI/CD automated builds via GitHub actions.
 - Automated formatting & linting checks.

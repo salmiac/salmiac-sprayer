@@ -1,0 +1,10 @@
+[package]
+name = "icon-gen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+resvg = "0.43"
+usvg = "0.43"
+tiny-skia = "0.11"
+image = { version = "0.25", features = ["ico", "png"] }
