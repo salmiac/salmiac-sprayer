@@ -8,3 +8,4 @@
 ## CI Fixes
 - [x] Install `libasound2-dev` via `sudo apt-get install -y libasound2-dev` before running `cargo clippy` in `.github/workflows/ci.yml`.
 - [x] Add `chmod +x ./gradlew` before running the Android build step in `.github/workflows/release.yml` to fix the permission denied error.
+- [x] Fix Windows binary name in `.github/workflows/release.yml` from `salmiac-sprayer.exe` to `salmiac-sprayer-app.exe`.

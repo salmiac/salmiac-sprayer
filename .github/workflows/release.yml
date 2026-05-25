@@ -23,7 +23,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
-          path: target/release/salmiac-sprayer.exe
+          path: target/release/salmiac-sprayer-app.exe
 
   build-android:
     name: Build Android Release
@@ -83,5 +83,5 @@ jobs:
           tag_name: release-${{ github.run_number }}
           name: Release ${{ github.run_number }}
           files: |
-            windows-build/salmiac-sprayer.exe
+            windows-build/salmiac-sprayer-app.exe
             android-build/*.apk
