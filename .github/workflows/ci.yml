@@ -34,5 +34,8 @@ jobs:
         with:
           components: clippy
 
+      - name: Install ALSA dependencies
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+
       - name: Run clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
