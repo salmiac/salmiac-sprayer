@@ -41,11 +41,16 @@ impl MonitorScreen {
             // Status and Buttons Row
             ui.horizontal(|ui| {
                 // Connection Status Indicator
-                let (status_text, status_color): (std::borrow::Cow<'_, str>, Color32) = if is_connected {
-                    (rust_i18n::t!("CONNECTED"), Color32::from_rgb(76, 175, 80)) // Green
-                } else {
-                    (rust_i18n::t!("DISCONNECTED"), Color32::from_rgb(244, 67, 54)) // Red
-                };
+                let (status_text, status_color): (std::borrow::Cow<'_, str>, Color32) =
+                    if is_connected {
+                        (rust_i18n::t!("CONNECTED"), Color32::from_rgb(76, 175, 80))
+                    // Green
+                    } else {
+                        (
+                            rust_i18n::t!("DISCONNECTED"),
+                            Color32::from_rgb(244, 67, 54),
+                        ) // Red
+                    };
 
                 egui::Frame::group(ui.style())
                     .fill(status_color.gamma_multiply(0.1))
@@ -167,7 +172,15 @@ impl MonitorScreen {
 
             ui.add_space(20.0);
 
-            ui.label(format!("{}: {}", rust_i18n::t!("Boom Locked"), if data.boom_locked { rust_i18n::t!("YES") } else { rust_i18n::t!("NO") }));
+            ui.label(format!(
+                "{}: {}",
+                rust_i18n::t!("Boom Locked"),
+                if data.boom_locked {
+                    rust_i18n::t!("YES")
+                } else {
+                    rust_i18n::t!("NO")
+                }
+            ));
 
             ui.add_space(20.0);
 

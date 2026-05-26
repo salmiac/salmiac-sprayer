@@ -123,12 +123,18 @@ impl eframe::App for SalmiacSprayerApp {
                         let selected_screen = self.current_screen;
 
                         let mon_resp = ui.add(
-                            egui::Button::new(RichText::new(format!("📊 {}", rust_i18n::t!("Monitor"))).size(20.0))
-                                .selected(selected_screen == Screen::Monitor),
+                            egui::Button::new(
+                                RichText::new(format!("📊 {}", rust_i18n::t!("Monitor")))
+                                    .size(20.0),
+                            )
+                            .selected(selected_screen == Screen::Monitor),
                         );
                         let set_resp = ui.add(
-                            egui::Button::new(RichText::new(format!("⚙ {}", rust_i18n::t!("Settings"))).size(20.0))
-                                .selected(selected_screen == Screen::Settings),
+                            egui::Button::new(
+                                RichText::new(format!("⚙ {}", rust_i18n::t!("Settings")))
+                                    .size(20.0),
+                            )
+                            .selected(selected_screen == Screen::Settings),
                         );
 
                         if mon_resp.clicked() {
@@ -148,9 +154,12 @@ impl eframe::App for SalmiacSprayerApp {
                         if self.show_nav_warning && settings_dirty {
                             ui.add_space(16.0);
                             ui.label(
-                                RichText::new(format!("⚠ {}", rust_i18n::t!("Save or Reset changes before leaving!")))
-                                    .color(Color32::RED)
-                                    .small(),
+                                RichText::new(format!(
+                                    "⚠ {}",
+                                    rust_i18n::t!("Save or Reset changes before leaving!")
+                                ))
+                                .color(Color32::RED)
+                                .small(),
                             );
                         } else if !settings_dirty {
                             self.show_nav_warning = false;
@@ -200,7 +209,7 @@ impl eframe::App for SalmiacSprayerApp {
                             &self.sprayer_settings,
                         );
                         self.show_nav_warning = false;
-                        
+
                         apply_theme(&ctx, self.sprayer_settings.theme_mode);
                         apply_language(self.sprayer_settings.app_language);
                     }
