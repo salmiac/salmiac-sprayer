@@ -1,5 +1,34 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+pub enum ThemeMode {
+    #[default]
+    System,
+    Light,
+    Dark,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+pub enum AppLanguage {
+    #[default]
+    System,
+    English,
+    Finnish,
+    Swedish,
+    Spanish,
+    German,
+    French,
+    Portuguese,
+    Italian,
+    Polish,
+    Dutch,
+    Danish,
+    Turkish,
+    Czech,
+    Hungarian,
+    Estonian,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Nozzle {
     pub color_name: String,
@@ -103,6 +132,10 @@ pub struct SprayerSettings {
     pub max_speed: f32,
     pub pressure_alert_threshold: f32,
     pub target_ip: String,
+    #[serde(default)]
+    pub theme_mode: ThemeMode,
+    #[serde(default)]
+    pub app_language: AppLanguage,
 }
 
 impl Default for SprayerSettings {
@@ -125,6 +158,8 @@ impl Default for SprayerSettings {
             max_speed: 0.0,
             pressure_alert_threshold: 0.5,
             target_ip: "255.255.255.255".to_string(),
+            theme_mode: ThemeMode::System,
+            app_language: AppLanguage::System,
         }
     }
 }

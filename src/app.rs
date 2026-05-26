@@ -1,5 +1,5 @@
 use crate::models::sprayer_data::SprayerData;
-use crate::models::sprayer_settings::SprayerSettings;
+use crate::models::sprayer_settings::{AppLanguage, SprayerSettings, ThemeMode};
 use crate::protocol::{DEFAULT_COMMAND_PORT, DEFAULT_STATUS_PORT};
 use crate::screens::monitor::MonitorScreen;
 use crate::screens::settings::SettingsScreen;
@@ -58,6 +58,10 @@ impl SalmiacSprayerApp {
                 log::error!("Failed to start UDP receiver: {}", e);
             }
         });
+
+        // Apply initial settings
+        apply_theme(&cc.egui_ctx, settings.theme_mode);
+        apply_language(settings.app_language);
 
         Self {
             current_screen: Screen::Monitor,
@@ -119,11 +123,11 @@ impl eframe::App for SalmiacSprayerApp {
                         let selected_screen = self.current_screen;
 
                         let mon_resp = ui.add(
-                            egui::Button::new(RichText::new("📊 Monitor").size(20.0))
+                            egui::Button::new(RichText::new(format!("📊 {}", rust_i18n::t!("Monitor"))).size(20.0))
                                 .selected(selected_screen == Screen::Monitor),
                         );
                         let set_resp = ui.add(
-                            egui::Button::new(RichText::new("⚙ Settings").size(20.0))
+                            egui::Button::new(RichText::new(format!("⚙ {}", rust_i18n::t!("Settings"))).size(20.0))
                                 .selected(selected_screen == Screen::Settings),
                         );
 
@@ -144,7 +148,7 @@ impl eframe::App for SalmiacSprayerApp {
                         if self.show_nav_warning && settings_dirty {
                             ui.add_space(16.0);
                             ui.label(
-                                RichText::new("⚠ Save or Reset changes before leaving!")
+                                RichText::new(format!("⚠ {}", rust_i18n::t!("Save or Reset changes before leaving!")))
                                     .color(Color32::RED)
                                     .small(),
                             );
@@ -196,6 +200,9 @@ impl eframe::App for SalmiacSprayerApp {
                             &self.sprayer_settings,
                         );
                         self.show_nav_warning = false;
+                        
+                        apply_theme(&ctx, self.sprayer_settings.theme_mode);
+                        apply_language(self.sprayer_settings.app_language);
                     }
                 }
             }
@@ -203,5 +210,44 @@ impl eframe::App for SalmiacSprayerApp {
 
         // Ensure we keep repainting to poll the network receiver and update timers
         ctx.request_repaint_after(std::time::Duration::from_millis(100));
+    }
+}
+
+pub fn apply_theme(ctx: &egui::Context, theme: ThemeMode) {
+    match theme {
+        ThemeMode::System => {
+            // Let egui decide based on OS preference (egui does this by default if we reset)
+            // But since we might be switching back from Light/Dark, we can set it to Dark as fallback or just use what it had.
+            // A simple approach is just clear our override, but egui Visuals is global.
+            // Let's use Dark mode as the default for System if we can't fetch OS easily.
+            ctx.set_visuals(egui::Visuals::dark());
+        }
+        ThemeMode::Light => ctx.set_visuals(egui::Visuals::light()),
+        ThemeMode::Dark => ctx.set_visuals(egui::Visuals::dark()),
+    }
+}
+
+pub fn apply_language(lang: AppLanguage) {
+    match lang {
+        AppLanguage::System => {
+            let loc = sys_locale::get_locale().unwrap_or_else(|| "en".to_string());
+            let lang_code = loc.split('-').next().unwrap_or("en");
+            rust_i18n::set_locale(lang_code);
+        }
+        AppLanguage::English => rust_i18n::set_locale("en"),
+        AppLanguage::Finnish => rust_i18n::set_locale("fi"),
+        AppLanguage::Swedish => rust_i18n::set_locale("sv"),
+        AppLanguage::Spanish => rust_i18n::set_locale("es"),
+        AppLanguage::German => rust_i18n::set_locale("de"),
+        AppLanguage::French => rust_i18n::set_locale("fr"),
+        AppLanguage::Portuguese => rust_i18n::set_locale("pt"),
+        AppLanguage::Italian => rust_i18n::set_locale("it"),
+        AppLanguage::Polish => rust_i18n::set_locale("pl"),
+        AppLanguage::Dutch => rust_i18n::set_locale("nl"),
+        AppLanguage::Danish => rust_i18n::set_locale("da"),
+        AppLanguage::Turkish => rust_i18n::set_locale("tr"),
+        AppLanguage::Czech => rust_i18n::set_locale("cs"),
+        AppLanguage::Hungarian => rust_i18n::set_locale("hu"),
+        AppLanguage::Estonian => rust_i18n::set_locale("et"),
     }
 }

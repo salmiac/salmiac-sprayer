@@ -17,3 +17,7 @@
 - [x] UI assets: Update logo PNG files and icon.ico from new SVG.
 - [x] CI/CD automated builds via GitHub actions.
 - [x] Automated formatting & linting checks.
+
+## Phase 4: Localization & Theming
+- [ ] Multilingual support (English, Finnish, Swedish, Spanish, German, French, Portuguese, Italian).
+- [ ] Theme selection (System, Light, Dark).

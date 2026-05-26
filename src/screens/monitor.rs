@@ -41,10 +41,10 @@ impl MonitorScreen {
             // Status and Buttons Row
             ui.horizontal(|ui| {
                 // Connection Status Indicator
-                let (status_text, status_color) = if is_connected {
-                    ("CONNECTED", Color32::from_rgb(76, 175, 80)) // Green
+                let (status_text, status_color): (std::borrow::Cow<'_, str>, Color32) = if is_connected {
+                    (rust_i18n::t!("CONNECTED"), Color32::from_rgb(76, 175, 80)) // Green
                 } else {
-                    ("DISCONNECTED", Color32::from_rgb(244, 67, 54)) // Red
+                    (rust_i18n::t!("DISCONNECTED"), Color32::from_rgb(244, 67, 54)) // Red
                 };
 
                 egui::Frame::group(ui.style())
@@ -63,9 +63,9 @@ impl MonitorScreen {
                 ui.add_space(8.0);
 
                 let btn_text = if self.controller_activated {
-                    "Controller ON"
+                    rust_i18n::t!("Controller ON")
                 } else {
-                    "Controller OFF"
+                    rust_i18n::t!("Controller OFF")
                 };
                 let btn_color = if self.controller_activated {
                     Color32::from_rgb(76, 175, 80)
@@ -85,9 +85,9 @@ impl MonitorScreen {
                 }
 
                 let mode_text = if self.constant_pressure_mode {
-                    "Constant"
+                    rust_i18n::t!("Constant")
                 } else {
-                    "Variable"
+                    rust_i18n::t!("Variable")
                 };
                 let mode_color = if !self.constant_pressure_mode {
                     Color32::from_rgb(76, 175, 80)
@@ -118,7 +118,7 @@ impl MonitorScreen {
                     .show(ui, |ui| {
                         ui.set_min_width(ui.available_width());
                         ui.label(
-                            RichText::new("⚠ PRESSURE DISCREPANCY DETECTED")
+                            RichText::new(rust_i18n::t!("⚠ PRESSURE DISCREPANCY DETECTED"))
                                 .color(Color32::RED)
                                 .strong()
                                 .size(20.0),
@@ -130,7 +130,7 @@ impl MonitorScreen {
 
             // Pressure Displays
             ui.vertical_centered(|ui| {
-                ui.label(RichText::new("Target Pressure").size(18.0));
+                ui.label(RichText::new(rust_i18n::t!("Target Pressure")).size(18.0));
                 egui::Frame::group(ui.style())
                     .fill(ui.style().visuals.faint_bg_color)
                     .inner_margin(4.0)
@@ -141,7 +141,7 @@ impl MonitorScreen {
 
                 ui.add_space(16.0);
 
-                ui.label(RichText::new("Current Pressure").size(18.0));
+                ui.label(RichText::new(rust_i18n::t!("Current Pressure")).size(18.0));
                 egui::Frame::group(ui.style())
                     .fill(ui.style().visuals.faint_bg_color)
                     .inner_margin(4.0)
@@ -167,10 +167,7 @@ impl MonitorScreen {
 
             ui.add_space(20.0);
 
-            ui.label(format!(
-                "Boom Locked: {}",
-                if data.boom_locked { "YES" } else { "NO" }
-            ));
+            ui.label(format!("{}: {}", rust_i18n::t!("Boom Locked"), if data.boom_locked { rust_i18n::t!("YES") } else { rust_i18n::t!("NO") }));
 
             ui.add_space(20.0);
 

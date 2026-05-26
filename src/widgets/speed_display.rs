@@ -20,28 +20,28 @@ impl SpeedDisplay {
             // Min and Max row
             ui.horizontal(|ui| {
                 ui.vertical(|ui| {
-                    ui.label("Min");
+                    ui.label(rust_i18n::t!("Min").as_ref());
                     ui.horizontal(|ui| {
                         ui.label(
                             RichText::new(format!("{:.1}", self.min_speed))
                                 .font(FontId::new(32.0, FontFamily::Monospace))
                                 .strong(),
                         );
-                        ui.label(RichText::new(" km/h").size(14.0));
+                        ui.label(RichText::new(rust_i18n::t!(" km/h")).size(14.0));
                     });
                 });
 
                 ui.add_space(40.0);
 
                 ui.vertical(|ui| {
-                    ui.label("Max");
+                    ui.label(rust_i18n::t!("Max").as_ref());
                     ui.horizontal(|ui| {
                         ui.label(
                             RichText::new(format!("{:.1}", self.max_speed))
                                 .font(FontId::new(32.0, FontFamily::Monospace))
                                 .strong(),
                         );
-                        ui.label(RichText::new(" km/h").size(14.0));
+                        ui.label(RichText::new(rust_i18n::t!(" km/h")).size(14.0));
                     });
                 });
             });
@@ -50,7 +50,7 @@ impl SpeedDisplay {
 
             // Main Speed
             ui.vertical_centered(|ui| {
-                ui.label("Speed");
+                ui.label(rust_i18n::t!("Speed").as_ref());
             });
             use egui::text::{LayoutJob, TextFormat};
             let mut job = LayoutJob::default();
@@ -64,7 +64,7 @@ impl SpeedDisplay {
                 },
             );
             job.append(
-                " km/h",
+                &rust_i18n::t!(" km/h"),
                 0.0,
                 TextFormat {
                     font_id: FontId::new(18.0, FontFamily::Proportional),

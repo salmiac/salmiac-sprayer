@@ -38,7 +38,7 @@ impl PressureDisplay {
             },
         );
         job.append(
-            " bar",
+            &rust_i18n::t!(" bar"),
             0.0,
             TextFormat {
                 font_id: FontId::new(font_size * 0.35, FontFamily::Proportional),

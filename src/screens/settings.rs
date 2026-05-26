@@ -1,4 +1,4 @@
-use crate::models::sprayer_settings::{get_nozzle_types, SprayerSettings};
+use crate::models::sprayer_settings::{get_nozzle_types, AppLanguage, SprayerSettings, ThemeMode};
 use egui::{Color32, FontFamily, FontId, RichText, Ui};
 
 const NOZZLE_CONSTANT: f32 = 2.3095;
@@ -45,6 +45,8 @@ impl SettingsScreen {
             || self.settings.pressure_alert_threshold
                 != self.original_settings.pressure_alert_threshold
             || self.settings.target_ip != self.original_settings.target_ip
+            || self.settings.theme_mode != self.original_settings.theme_mode
+            || self.settings.app_language != self.original_settings.app_language
     }
 
     pub fn ui(&mut self, ui: &mut Ui) -> bool {
@@ -52,12 +54,12 @@ impl SettingsScreen {
         let mut saved_clicked = false;
 
         ui.vertical(|ui| {
-            ui.heading("Settings");
+            ui.heading(rust_i18n::t!("Settings"));
             ui.add_space(16.0);
 
             // Nozzle Size Selector with - and + buttons
             ui.horizontal(|ui| {
-                ui.label(RichText::new("Nozzle Size").size(16.0));
+                ui.label(RichText::new(rust_i18n::t!("Nozzle Size")).size(16.0));
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     let nozzle_types = get_nozzle_types();
@@ -122,19 +124,19 @@ impl SettingsScreen {
             ui.add_space(8.0);
 
             // Nozzle Spacing
-            if let Some(val) = numeric_row(ui, "Nozzle Spacing (m)", &mut self.nozzle_spacing_str, self.settings.nozzle_spacing, 0.1, 2.0) {
+            if let Some(val) = numeric_row(ui, &rust_i18n::t!("Nozzle Spacing (m)"), &mut self.nozzle_spacing_str, self.settings.nozzle_spacing, 0.1, 2.0) {
                 self.settings.nozzle_spacing = val;
                 changed = true;
             }
 
             // Litres/ha
-            if let Some(val) = numeric_row(ui, "Litres/ha (10-999)", &mut self.litres_per_ha_str, self.settings.litres_per_ha, 10.0, 999.0) {
+            if let Some(val) = numeric_row(ui, &rust_i18n::t!("Litres/ha (10-999)"), &mut self.litres_per_ha_str, self.settings.litres_per_ha, 10.0, 999.0) {
                 self.settings.litres_per_ha = val;
                 changed = true;
             }
 
             // Pressure Alert Threshold
-            if let Some(val) = numeric_row(ui, "Pressure Alert (bar)", &mut self.pressure_alert_threshold_str, self.settings.pressure_alert_threshold, 0.1, 2.0) {
+            if let Some(val) = numeric_row(ui, &rust_i18n::t!("Pressure Alert (bar)"), &mut self.pressure_alert_threshold_str, self.settings.pressure_alert_threshold, 0.1, 2.0) {
                 self.settings.pressure_alert_threshold = val;
                 changed = true;
             }
@@ -142,7 +144,7 @@ impl SettingsScreen {
             // Target IP
             ui.vertical(|ui| {
                 ui.horizontal(|ui| {
-                    ui.label(RichText::new("Target IP").size(16.0));
+                    ui.label(RichText::new(rust_i18n::t!("Target IP")).size(16.0));
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let edit = egui::TextEdit::singleline(&mut self.target_ip_str)
                             .font(FontId::new(16.0, FontFamily::Monospace))
@@ -162,7 +164,7 @@ impl SettingsScreen {
                 if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_err() && !self.target_ip_str.is_empty() {
                     ui.horizontal(|ui| {
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            ui.label(RichText::new("Invalid IPv4 address").color(Color32::RED).size(12.0));
+                            ui.label(RichText::new(rust_i18n::t!("Invalid IPv4 address")).color(Color32::RED).size(12.0));
                         });
                     });
                 }
@@ -174,10 +176,10 @@ impl SettingsScreen {
 
             // Min Pressure
             let min_warning = if let Ok(val) = self.min_pressure_str.parse::<f32>() {
-                if val > self.settings.max_pressure { Some("Min cannot exceed Max".to_string()) } else { None }
+                if val > self.settings.max_pressure { Some(rust_i18n::t!("Min cannot exceed Max").to_string()) } else { None }
             } else { None };
 
-            if let Some(val) = pressure_row(ui, "Min Pressure", &mut self.min_pressure_str, self.settings.min_pressure, &self.settings, min_warning) {
+            if let Some(val) = pressure_row(ui, &rust_i18n::t!("Min Pressure"), &mut self.min_pressure_str, self.settings.min_pressure, &self.settings, min_warning) {
                 if val <= self.settings.max_pressure {
                     self.settings.min_pressure = val;
                     if self.settings.nominal_pressure < val {
@@ -190,10 +192,10 @@ impl SettingsScreen {
 
             // Max Pressure
             let max_warning = if let Ok(val) = self.max_pressure_str.parse::<f32>() {
-                if val < self.settings.min_pressure { Some("Max cannot be below Min".to_string()) } else { None }
+                if val < self.settings.min_pressure { Some(rust_i18n::t!("Max cannot be below Min").to_string()) } else { None }
             } else { None };
 
-            if let Some(val) = pressure_row(ui, "Max Pressure", &mut self.max_pressure_str, self.settings.max_pressure, &self.settings, max_warning) {
+            if let Some(val) = pressure_row(ui, &rust_i18n::t!("Max Pressure"), &mut self.max_pressure_str, self.settings.max_pressure, &self.settings, max_warning) {
                 if val >= self.settings.min_pressure {
                     self.settings.max_pressure = val;
                     if self.settings.nominal_pressure > val {
@@ -207,11 +209,11 @@ impl SettingsScreen {
             // Nominal Pressure
             let nom_warning = if let Ok(val) = self.nominal_pressure_str.parse::<f32>() {
                 if val < self.settings.min_pressure || val > self.settings.max_pressure {
-                    Some("Must be between Min and Max".to_string())
+                    Some(rust_i18n::t!("Must be between Min and Max").to_string())
                 } else { None }
             } else { None };
 
-            if let Some(val) = pressure_row(ui, "Nominal Pressure", &mut self.nominal_pressure_str, self.settings.nominal_pressure, &self.settings, nom_warning) {
+            if let Some(val) = pressure_row(ui, &rust_i18n::t!("Nominal Pressure"), &mut self.nominal_pressure_str, self.settings.nominal_pressure, &self.settings, nom_warning) {
                 if val >= self.settings.min_pressure && val <= self.settings.max_pressure {
                     self.settings.nominal_pressure = val;
                     changed = true;
@@ -221,7 +223,7 @@ impl SettingsScreen {
             ui.add_space(24.0);
 
             ui.horizontal(|ui| {
-                let save_btn = egui::Button::new(RichText::new("Save").size(18.0));
+                let save_btn = egui::Button::new(RichText::new(rust_i18n::t!("Save")).size(18.0));
                 if ui.add_sized([100.0, 40.0], save_btn).clicked() {
                     self.original_settings = self.settings.clone();
                     saved_clicked = true;
@@ -229,7 +231,7 @@ impl SettingsScreen {
 
                 ui.add_space(8.0);
 
-                let reset_btn = egui::Button::new(RichText::new("Reset").size(18.0));
+                let reset_btn = egui::Button::new(RichText::new(rust_i18n::t!("Reset")).size(18.0));
                 if ui.add_sized([100.0, 40.0], reset_btn).clicked() {
                     self.settings = self.original_settings.clone();
                     self.sync_strings();
@@ -238,7 +240,7 @@ impl SettingsScreen {
 
                 ui.add_space(8.0);
 
-                let defaults_btn = egui::Button::new(RichText::new("Defaults").size(18.0));
+                let defaults_btn = egui::Button::new(RichText::new(rust_i18n::t!("Defaults")).size(18.0));
                 if ui.add_sized([100.0, 40.0], defaults_btn).clicked() {
                     self.settings = SprayerSettings::default();
                     self.sync_strings();
@@ -249,7 +251,89 @@ impl SettingsScreen {
             ui.add_space(32.0);
             ui.separator();
 
-            ui.collapsing("About & Legal", |ui| {
+            // UI Preferences (Theme & Language)
+            let prev_theme = self.settings.theme_mode;
+            let prev_lang = self.settings.app_language;
+
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                ui.label(RichText::new(rust_i18n::t!("Theme")).size(16.0));
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let selected_text: String = match self.settings.theme_mode {
+                        ThemeMode::System => rust_i18n::t!("System").into_owned(),
+                        ThemeMode::Light => rust_i18n::t!("Light").into_owned(),
+                        ThemeMode::Dark => rust_i18n::t!("Dark").into_owned(),
+                    };
+                    let selected_text = RichText::new(selected_text).font(FontId::new(16.0, FontFamily::Proportional));
+                    egui::ComboBox::from_id_salt("theme_selector")
+                        .selected_text(selected_text)
+                        .show_ui(ui, |ui| {
+                            if ui.selectable_value(&mut self.settings.theme_mode, ThemeMode::System, rust_i18n::t!("System")).clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.theme_mode, ThemeMode::Light, rust_i18n::t!("Light")).clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.theme_mode, ThemeMode::Dark, rust_i18n::t!("Dark")).clicked() { changed = true; }
+                        });
+                });
+            });
+
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                ui.label(RichText::new(rust_i18n::t!("Language")).size(16.0));
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let selected_text: String = match self.settings.app_language {
+                        AppLanguage::System => rust_i18n::t!("System").into_owned(),
+                        AppLanguage::English => rust_i18n::t!("English").into_owned(),
+                        AppLanguage::Finnish => "Suomi".to_string(),
+                        AppLanguage::Swedish => "Svenska".to_string(),
+                        AppLanguage::Spanish => "Español".to_string(),
+                        AppLanguage::German => "Deutsch".to_string(),
+                        AppLanguage::French => "Français".to_string(),
+                        AppLanguage::Portuguese => "Português".to_string(),
+                        AppLanguage::Italian => "Italiano".to_string(),
+                        AppLanguage::Polish => "Polski".to_string(),
+                        AppLanguage::Dutch => "Nederlands".to_string(),
+                        AppLanguage::Danish => "Dansk".to_string(),
+                        AppLanguage::Turkish => "Türkçe".to_string(),
+                        AppLanguage::Czech => "Čeština".to_string(),
+                        AppLanguage::Hungarian => "Magyar".to_string(),
+                        AppLanguage::Estonian => "Eesti".to_string(),
+                    };
+                    let selected_text = RichText::new(selected_text).font(FontId::new(16.0, FontFamily::Proportional));
+                    egui::ComboBox::from_id_salt("language_selector")
+                        .selected_text(selected_text)
+                        .show_ui(ui, |ui| {
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::System, rust_i18n::t!("System")).clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::English, rust_i18n::t!("English")).clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Finnish, "Suomi").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Swedish, "Svenska").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Spanish, "Español").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::German, "Deutsch").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::French, "Français").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Portuguese, "Português").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Italian, "Italiano").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Polish, "Polski").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Dutch, "Nederlands").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Danish, "Dansk").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Turkish, "Türkçe").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Czech, "Čeština").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Hungarian, "Magyar").clicked() { changed = true; }
+                            if ui.selectable_value(&mut self.settings.app_language, AppLanguage::Estonian, "Eesti").clicked() { changed = true; }
+                        });
+                });
+            });
+
+            ui.add_space(32.0);
+            ui.separator();
+
+            if prev_theme != self.settings.theme_mode {
+                crate::app::apply_theme(ui.ctx(), self.settings.theme_mode);
+                changed = true;
+            }
+            if prev_lang != self.settings.app_language {
+                crate::app::apply_language(self.settings.app_language);
+                changed = true;
+            }
+
+            ui.collapsing(rust_i18n::t!("About & Legal"), |ui| {
                 ui.small("Salmiac Sprayer v0.1.0");
                 ui.small("Copyright © 2026. Licensed under the MIT License.");
 
@@ -401,7 +485,7 @@ fn pressure_row(
                 warning = Some(format!("Pressure must be {}-{} bar", min_range, max_range));
             }
         } else if !string_val.is_empty() {
-            warning = Some("Invalid number".to_string());
+            warning = Some(rust_i18n::t!("Invalid number").to_string());
         }
 
         let speed_val = result.unwrap_or(current_val);

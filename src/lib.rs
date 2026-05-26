@@ -7,6 +7,8 @@ pub mod widgets;
 
 use app::SalmiacSprayerApp;
 
+rust_i18n::i18n!("locales", fallback = "en");
+
 #[cfg(target_os = "android")]
 #[no_mangle]
 pub extern "C" fn __cxa_pure_virtual() {
