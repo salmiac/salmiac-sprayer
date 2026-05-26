@@ -201,9 +201,7 @@ impl eframe::App for SalmiacSprayerApp {
             }
         });
 
-        // Ensure we keep repainting if warning is active to keep beep timer accurate
-        if self.current_screen == Screen::Monitor && self.monitor_screen.controller_activated {
-            ctx.request_repaint_after(std::time::Duration::from_millis(500));
-        }
+        // Ensure we keep repainting to poll the network receiver and update timers
+        ctx.request_repaint_after(std::time::Duration::from_millis(100));
     }
 }
