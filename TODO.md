@@ -1,6 +1,7 @@
 # Current Tasks
 
 ## Android Bug Fixes
+- [x] Fix `cargo fmt` whitespace issue in `src/app.rs`.
 - [x] Fix `ViewportCommand::PreventDisplaySleep` compile error on Android.
 - [x] Prevent screen from turning off when the app is running on Android.
 

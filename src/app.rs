@@ -82,7 +82,7 @@ impl SalmiacSprayerApp {
 impl eframe::App for SalmiacSprayerApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
-        
+
         // Receive data from background task
         while let Ok(data) = self.data_rx.try_recv() {
             self.sprayer_data = data;
