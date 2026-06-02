@@ -62,6 +62,11 @@ pub fn android_main(app: android_activity::AndroidApp) {
             .with_tag("SalmiacSprayer"),
     );
 
+    app.set_window_flags(
+        android_activity::WindowManagerFlags::KEEP_SCREEN_ON,
+        android_activity::WindowManagerFlags::empty(),
+    );
+
     // Create a tokio runtime for Android
     let rt = tokio::runtime::Runtime::new().unwrap();
     let _guard = rt.enter();

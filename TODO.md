@@ -1,5 +1,9 @@
 # Current Tasks
 
+## Android Bug Fixes
+- [x] Fix `ViewportCommand::PreventDisplaySleep` compile error on Android.
+- [x] Prevent screen from turning off when the app is running on Android.
+
 ## Theme and Localization Support
 - [x] Add `ThemeMode` (System, Light, Dark) and `AppLanguage` enums to `src/models/sprayer_settings.rs` and update `SprayerSettings` default values.
 - [x] Create a localization system (`src/i18n.rs` or `rust-i18n`) with translations for English, Finnish, Swedish, Spanish, German, French, Portuguese, and Italian.

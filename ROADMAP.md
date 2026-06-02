@@ -19,5 +19,8 @@
 - [x] Automated formatting & linting checks.
 
 ## Phase 4: Localization & Theming
-- [ ] Multilingual support (English, Finnish, Swedish, Spanish, German, French, Portuguese, Italian).
-- [ ] Theme selection (System, Light, Dark).
+- [x] Multilingual support (English, Finnish, Swedish, Spanish, German, French, Portuguese, Italian).
+- [x] Theme selection (System, Light, Dark).
+
+## Phase 5: Bug Fixes
+- [x] Prevent screen from turning off when the app is running on Android.
