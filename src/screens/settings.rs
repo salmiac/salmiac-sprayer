@@ -379,9 +379,12 @@ impl SettingsScreen {
                 .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
                 .show(ui.ctx(), |ui| {
                     ui.vertical_centered(|ui| {
-                        ui.label(RichText::new(target_str.clone()).font(FontId::new(32.0, FontFamily::Monospace)));
+                        ui.label(
+                            RichText::new(target_str.clone())
+                                .font(FontId::new(32.0, FontFamily::Monospace)),
+                        );
                         ui.add_space(8.0);
-                        
+
                         let buttons = [
                             ["1", "2", "3"],
                             ["4", "5", "6"],
@@ -392,7 +395,13 @@ impl SettingsScreen {
                         for row in buttons {
                             ui.horizontal(|ui| {
                                 for btn in row {
-                                    if ui.add_sized([70.0, 70.0], egui::Button::new(RichText::new(btn).size(28.0))).clicked() {
+                                    if ui
+                                        .add_sized(
+                                            [70.0, 70.0],
+                                            egui::Button::new(RichText::new(btn).size(28.0)),
+                                        )
+                                        .clicked()
+                                    {
                                         if btn == "<-" {
                                             target_str.pop();
                                         } else {
@@ -403,14 +412,26 @@ impl SettingsScreen {
                                 }
                             });
                         }
-                        
+
                         ui.add_space(8.0);
                         ui.horizontal(|ui| {
-                            if ui.add_sized([105.0, 50.0], egui::Button::new(RichText::new("C").size(24.0))).clicked() {
+                            if ui
+                                .add_sized(
+                                    [105.0, 50.0],
+                                    egui::Button::new(RichText::new("C").size(24.0)),
+                                )
+                                .clicked()
+                            {
                                 target_str.clear();
                                 numpad_changed = true;
                             }
-                            if ui.add_sized([105.0, 50.0], egui::Button::new(RichText::new("OK").size(24.0))).clicked() {
+                            if ui
+                                .add_sized(
+                                    [105.0, 50.0],
+                                    egui::Button::new(RichText::new("OK").size(24.0)),
+                                )
+                                .clicked()
+                            {
                                 close_numpad = true;
                             }
                         });
@@ -444,29 +465,34 @@ impl SettingsScreen {
     fn parse_and_update(&mut self) -> bool {
         let mut changed = false;
         if let Ok(val) = self.nozzle_spacing_str.parse::<f32>() {
-            if val >= 0.1 && val <= 2.0 && self.settings.nozzle_spacing != val {
+            if (0.1..=2.0).contains(&val) && self.settings.nozzle_spacing != val {
                 self.settings.nozzle_spacing = val;
                 changed = true;
             }
         }
         if let Ok(val) = self.litres_per_ha_str.parse::<f32>() {
-            if val >= 10.0 && val <= 999.0 && self.settings.litres_per_ha != val {
+            if (10.0..=999.0).contains(&val) && self.settings.litres_per_ha != val {
                 self.settings.litres_per_ha = val;
                 changed = true;
             }
         }
         if let Ok(val) = self.pressure_alert_threshold_str.parse::<f32>() {
-            if val >= 0.1 && val <= 2.0 && self.settings.pressure_alert_threshold != val {
+            if (0.1..=2.0).contains(&val) && self.settings.pressure_alert_threshold != val {
                 self.settings.pressure_alert_threshold = val;
                 changed = true;
             }
         }
-        if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_ok() && self.settings.target_ip != self.target_ip_str {
+        if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_ok()
+            && self.settings.target_ip != self.target_ip_str
+        {
             self.settings.target_ip = self.target_ip_str.clone();
             changed = true;
         }
         if let Ok(val) = self.min_pressure_str.parse::<f32>() {
-            if val >= 1.0 && val <= 10.0 && val <= self.settings.max_pressure && self.settings.min_pressure != val {
+            if (1.0..=10.0).contains(&val)
+                && val <= self.settings.max_pressure
+                && self.settings.min_pressure != val
+            {
                 self.settings.min_pressure = val;
                 if self.settings.nominal_pressure < val {
                     self.settings.nominal_pressure = val;
@@ -475,7 +501,10 @@ impl SettingsScreen {
             }
         }
         if let Ok(val) = self.max_pressure_str.parse::<f32>() {
-            if val >= 1.0 && val <= 10.0 && val >= self.settings.min_pressure && self.settings.max_pressure != val {
+            if (1.0..=10.0).contains(&val)
+                && val >= self.settings.min_pressure
+                && self.settings.max_pressure != val
+            {
                 self.settings.max_pressure = val;
                 if self.settings.nominal_pressure > val {
                     self.settings.nominal_pressure = val;
@@ -484,7 +513,10 @@ impl SettingsScreen {
             }
         }
         if let Ok(val) = self.nominal_pressure_str.parse::<f32>() {
-            if val >= self.settings.min_pressure && val <= self.settings.max_pressure && self.settings.nominal_pressure != val {
+            if val >= self.settings.min_pressure
+                && val <= self.settings.max_pressure
+                && self.settings.nominal_pressure != val
+            {
                 self.settings.nominal_pressure = val;
                 changed = true;
             }
@@ -504,6 +536,7 @@ impl SettingsScreen {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn numeric_row(
     ui: &mut Ui,
     label: &str,
@@ -547,6 +580,7 @@ fn numeric_row(
     new_val
 }
 
+#[allow(clippy::too_many_arguments)]
 fn pressure_row(
     ui: &mut Ui,
     label: &str,
