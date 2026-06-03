@@ -3,6 +3,17 @@ use egui::{Color32, FontFamily, FontId, RichText, Ui};
 
 const NOZZLE_CONSTANT: f32 = 2.3095;
 
+#[derive(Clone, PartialEq)]
+enum NumpadTarget {
+    NozzleSpacing,
+    LitresPerHa,
+    MinPressure,
+    MaxPressure,
+    NominalPressure,
+    PressureAlert,
+    TargetIp,
+}
+
 pub struct SettingsScreen {
     pub settings: SprayerSettings,
     original_settings: SprayerSettings,
@@ -14,6 +25,7 @@ pub struct SettingsScreen {
     nominal_pressure_str: String,
     pressure_alert_threshold_str: String,
     target_ip_str: String,
+    active_numpad: Option<NumpadTarget>,
 }
 
 impl SettingsScreen {
@@ -28,6 +40,7 @@ impl SettingsScreen {
             target_ip_str: String::new(),
             original_settings: settings.clone(),
             settings,
+            active_numpad: None,
         };
         screen.sync_strings();
         screen
@@ -124,19 +137,19 @@ impl SettingsScreen {
             ui.add_space(8.0);
 
             // Nozzle Spacing
-            if let Some(val) = numeric_row(ui, &rust_i18n::t!("Nozzle Spacing (m)"), &mut self.nozzle_spacing_str, self.settings.nozzle_spacing, 0.1, 2.0) {
+            if let Some(val) = numeric_row(ui, &rust_i18n::t!("Nozzle Spacing (m)"), &mut self.nozzle_spacing_str, self.settings.nozzle_spacing, 0.1, 2.0, NumpadTarget::NozzleSpacing, &mut self.active_numpad) {
                 self.settings.nozzle_spacing = val;
                 changed = true;
             }
 
             // Litres/ha
-            if let Some(val) = numeric_row(ui, &rust_i18n::t!("Litres/ha (10-999)"), &mut self.litres_per_ha_str, self.settings.litres_per_ha, 10.0, 999.0) {
+            if let Some(val) = numeric_row(ui, &rust_i18n::t!("Litres/ha (10-999)"), &mut self.litres_per_ha_str, self.settings.litres_per_ha, 10.0, 999.0, NumpadTarget::LitresPerHa, &mut self.active_numpad) {
                 self.settings.litres_per_ha = val;
                 changed = true;
             }
 
             // Pressure Alert Threshold
-            if let Some(val) = numeric_row(ui, &rust_i18n::t!("Pressure Alert (bar)"), &mut self.pressure_alert_threshold_str, self.settings.pressure_alert_threshold, 0.1, 2.0) {
+            if let Some(val) = numeric_row(ui, &rust_i18n::t!("Pressure Alert (bar)"), &mut self.pressure_alert_threshold_str, self.settings.pressure_alert_threshold, 0.1, 2.0, NumpadTarget::PressureAlert, &mut self.active_numpad) {
                 self.settings.pressure_alert_threshold = val;
                 changed = true;
             }
@@ -150,6 +163,9 @@ impl SettingsScreen {
                             .font(FontId::new(16.0, FontFamily::Monospace))
                             .desired_width(250.0);
                         let response = ui.add(edit);
+                        if response.gained_focus() || response.clicked() {
+                            self.active_numpad = Some(NumpadTarget::TargetIp);
+                        }
                         if response.changed()
                             && self.target_ip_str.parse::<std::net::Ipv4Addr>().is_ok() {
                                 self.settings.target_ip = self.target_ip_str.clone();
@@ -179,7 +195,7 @@ impl SettingsScreen {
                 if val > self.settings.max_pressure { Some(rust_i18n::t!("Min cannot exceed Max").to_string()) } else { None }
             } else { None };
 
-            if let Some(val) = pressure_row(ui, &rust_i18n::t!("Min Pressure"), &mut self.min_pressure_str, self.settings.min_pressure, &self.settings, min_warning) {
+            if let Some(val) = pressure_row(ui, &rust_i18n::t!("Min Pressure"), &mut self.min_pressure_str, self.settings.min_pressure, &self.settings, min_warning, NumpadTarget::MinPressure, &mut self.active_numpad) {
                 if val <= self.settings.max_pressure {
                     self.settings.min_pressure = val;
                     if self.settings.nominal_pressure < val {
@@ -195,7 +211,7 @@ impl SettingsScreen {
                 if val < self.settings.min_pressure { Some(rust_i18n::t!("Max cannot be below Min").to_string()) } else { None }
             } else { None };
 
-            if let Some(val) = pressure_row(ui, &rust_i18n::t!("Max Pressure"), &mut self.max_pressure_str, self.settings.max_pressure, &self.settings, max_warning) {
+            if let Some(val) = pressure_row(ui, &rust_i18n::t!("Max Pressure"), &mut self.max_pressure_str, self.settings.max_pressure, &self.settings, max_warning, NumpadTarget::MaxPressure, &mut self.active_numpad) {
                 if val >= self.settings.min_pressure {
                     self.settings.max_pressure = val;
                     if self.settings.nominal_pressure > val {
@@ -213,7 +229,7 @@ impl SettingsScreen {
                 } else { None }
             } else { None };
 
-            if let Some(val) = pressure_row(ui, &rust_i18n::t!("Nominal Pressure"), &mut self.nominal_pressure_str, self.settings.nominal_pressure, &self.settings, nom_warning) {
+            if let Some(val) = pressure_row(ui, &rust_i18n::t!("Nominal Pressure"), &mut self.nominal_pressure_str, self.settings.nominal_pressure, &self.settings, nom_warning, NumpadTarget::NominalPressure, &mut self.active_numpad) {
                 if val >= self.settings.min_pressure && val <= self.settings.max_pressure {
                     self.settings.nominal_pressure = val;
                     changed = true;
@@ -344,6 +360,73 @@ impl SettingsScreen {
             });
         });
 
+        if let Some(target) = self.active_numpad.clone() {
+            let mut close_numpad = false;
+            let mut numpad_changed = false;
+            let target_str = match target {
+                NumpadTarget::NozzleSpacing => &mut self.nozzle_spacing_str,
+                NumpadTarget::LitresPerHa => &mut self.litres_per_ha_str,
+                NumpadTarget::MinPressure => &mut self.min_pressure_str,
+                NumpadTarget::MaxPressure => &mut self.max_pressure_str,
+                NumpadTarget::NominalPressure => &mut self.nominal_pressure_str,
+                NumpadTarget::PressureAlert => &mut self.pressure_alert_threshold_str,
+                NumpadTarget::TargetIp => &mut self.target_ip_str,
+            };
+
+            egui::Window::new(rust_i18n::t!("Numpad"))
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .show(ui.ctx(), |ui| {
+                    ui.vertical_centered(|ui| {
+                        ui.label(RichText::new(target_str.clone()).font(FontId::new(32.0, FontFamily::Monospace)));
+                        ui.add_space(8.0);
+                        
+                        let buttons = [
+                            ["1", "2", "3"],
+                            ["4", "5", "6"],
+                            ["7", "8", "9"],
+                            [".", "0", "<-"],
+                        ];
+
+                        for row in buttons {
+                            ui.horizontal(|ui| {
+                                for btn in row {
+                                    if ui.add_sized([70.0, 70.0], egui::Button::new(RichText::new(btn).size(28.0))).clicked() {
+                                        if btn == "<-" {
+                                            target_str.pop();
+                                        } else {
+                                            target_str.push_str(btn);
+                                        }
+                                        numpad_changed = true;
+                                    }
+                                }
+                            });
+                        }
+                        
+                        ui.add_space(8.0);
+                        ui.horizontal(|ui| {
+                            if ui.add_sized([105.0, 50.0], egui::Button::new(RichText::new("C").size(24.0))).clicked() {
+                                target_str.clear();
+                                numpad_changed = true;
+                            }
+                            if ui.add_sized([105.0, 50.0], egui::Button::new(RichText::new("OK").size(24.0))).clicked() {
+                                close_numpad = true;
+                            }
+                        });
+                    });
+                });
+
+            if numpad_changed {
+                changed |= self.parse_and_update();
+            }
+            if close_numpad {
+                changed |= self.parse_and_update();
+                self.sync_strings();
+                self.active_numpad = None;
+            }
+        }
+
         if changed {
             self.calculate_speeds();
         }
@@ -356,6 +439,57 @@ impl SettingsScreen {
             calculate_speed_for_pressure(&self.settings, self.settings.min_pressure);
         self.settings.max_speed =
             calculate_speed_for_pressure(&self.settings, self.settings.max_pressure);
+    }
+
+    fn parse_and_update(&mut self) -> bool {
+        let mut changed = false;
+        if let Ok(val) = self.nozzle_spacing_str.parse::<f32>() {
+            if val >= 0.1 && val <= 2.0 && self.settings.nozzle_spacing != val {
+                self.settings.nozzle_spacing = val;
+                changed = true;
+            }
+        }
+        if let Ok(val) = self.litres_per_ha_str.parse::<f32>() {
+            if val >= 10.0 && val <= 999.0 && self.settings.litres_per_ha != val {
+                self.settings.litres_per_ha = val;
+                changed = true;
+            }
+        }
+        if let Ok(val) = self.pressure_alert_threshold_str.parse::<f32>() {
+            if val >= 0.1 && val <= 2.0 && self.settings.pressure_alert_threshold != val {
+                self.settings.pressure_alert_threshold = val;
+                changed = true;
+            }
+        }
+        if self.target_ip_str.parse::<std::net::Ipv4Addr>().is_ok() && self.settings.target_ip != self.target_ip_str {
+            self.settings.target_ip = self.target_ip_str.clone();
+            changed = true;
+        }
+        if let Ok(val) = self.min_pressure_str.parse::<f32>() {
+            if val >= 1.0 && val <= 10.0 && val <= self.settings.max_pressure && self.settings.min_pressure != val {
+                self.settings.min_pressure = val;
+                if self.settings.nominal_pressure < val {
+                    self.settings.nominal_pressure = val;
+                }
+                changed = true;
+            }
+        }
+        if let Ok(val) = self.max_pressure_str.parse::<f32>() {
+            if val >= 1.0 && val <= 10.0 && val >= self.settings.min_pressure && self.settings.max_pressure != val {
+                self.settings.max_pressure = val;
+                if self.settings.nominal_pressure > val {
+                    self.settings.nominal_pressure = val;
+                }
+                changed = true;
+            }
+        }
+        if let Ok(val) = self.nominal_pressure_str.parse::<f32>() {
+            if val >= self.settings.min_pressure && val <= self.settings.max_pressure && self.settings.nominal_pressure != val {
+                self.settings.nominal_pressure = val;
+                changed = true;
+            }
+        }
+        changed
     }
 
     fn sync_strings(&mut self) {
@@ -377,6 +511,8 @@ fn numeric_row(
     current_val: f32,
     min: f32,
     max: f32,
+    numpad_target: NumpadTarget,
+    active_numpad: &mut Option<NumpadTarget>,
 ) -> Option<f32> {
     let mut new_val = None;
     ui.horizontal(|ui| {
@@ -387,6 +523,9 @@ fn numeric_row(
                 .desired_width(80.0);
 
             let response = ui.add(edit);
+            if response.gained_focus() || response.clicked() {
+                *active_numpad = Some(numpad_target);
+            }
             if response.changed() {
                 if let Ok(val) = string_val.parse::<f32>() {
                     if val >= min && val <= max {
@@ -415,6 +554,8 @@ fn pressure_row(
     current_val: f32,
     settings: &SprayerSettings,
     constraint_warning: Option<String>,
+    numpad_target: NumpadTarget,
+    active_numpad: &mut Option<NumpadTarget>,
 ) -> Option<f32> {
     let mut result = None;
     let min_range = 1.0;
@@ -444,6 +585,9 @@ fn pressure_row(
                     .desired_width(80.0);
 
                 let response = ui.add(edit);
+                if response.gained_focus() || response.clicked() {
+                    *active_numpad = Some(numpad_target);
+                }
                 if response.changed() {
                     if let Ok(val) = string_val.parse::<f32>() {
                         if val >= min_range && val <= max_range {
