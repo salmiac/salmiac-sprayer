@@ -7,7 +7,7 @@ pub const SETTINGS_PACKET_LEN: usize = 16;
 pub const BUTTON_PACKET_LEN: usize = 7;
 
 pub const DEFAULT_MULTIPLIER: f32 = 100.0;
-pub const LITRES_PER_HA_MULTIPLIER: f32 = 10.0;
+pub const LITRES_PER_HA_MULTIPLIER: f32 = 100.0;
 
 pub const DEFAULT_STATUS_PORT: u16 = 1111;
 pub const DEFAULT_COMMAND_PORT: u16 = 8888;
